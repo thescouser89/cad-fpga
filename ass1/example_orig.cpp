@@ -117,38 +117,191 @@ void drawscreen (void) {
          * Draw some rectangles using the indexed colours
          **************/
 
-        color_types color_switchbox = LIGHTGREY;
+        color_types color_indicies[] = {
+            LIGHTGREY,
+            DARKGREY,
+            WHITE,
+            BLACK,
+            BLUE,
+            GREEN,
+            YELLOW,
+            CYAN,
+            RED,
+            DARKGREEN,
+            MAGENTA
+        };
 
 
-        const float square_width = 100;
+        const float rectangle_width = 50;
+        const float rectangle_height = rectangle_width;
         const t_point start_point = t_point(150,30);
-        t_bound_box color_square = t_bound_box(start_point, square_width, square_width);
+        t_bound_box color_rectangle = t_bound_box(start_point, rectangle_width, rectangle_height);
 
         // text is UTF-8
-        drawtext (110, color_square.get_ycenter(), "colors", 2*(start_point.x - 110), square_width);
+        drawtext (110, color_rectangle.get_ycenter(), "colors", 2*(start_point.x - 110), rectangle_height);
 
-        for(size_t j = 0; j < 5; ++j) {
-            for(size_t i = 0; i < 5; ++i) {
-                setcolor(color_switchbox);
-                fillrect(color_square);
-                color_square += t_point(square_width + square_width, 0);
-            }
-            t_point next_point = start_point + t_point(0, (j + 1) * 2 * square_width);
-            color_square = t_bound_box(next_point, square_width, square_width);
+        for(size_t i = 0; i < sizeof(color_indicies)/sizeof(color_indicies[0]); ++i) {
+            setcolor(color_indicies[i]);
+            fillrect(color_rectangle);
+            color_rectangle += t_point(rectangle_width + 10, 0);
         }
+
+        drawtext (400, color_rectangle.get_ycenter(), "fillrect", FLT_MAX, rectangle_height);
+
+        /********
+         * Draw some rectangles with RGB triplet colours
+         ********/
+
+        std::srand((int) time(0)); // hack to make the colors change once per second.
 
         setcolor(BLACK);
-        t_point logic_start_point = t_point(square_width, square_width) + start_point;
-
-        for (size_t j = 0; j < 4; ++j) {
-            for (size_t i = 0; i < 4; ++i) {
-                drawrect(logic_start_point, t_point(square_width, square_width) + logic_start_point);
-                logic_start_point += t_point(2 * square_width, 0);
-            }
-            logic_start_point = t_point(square_width, (j + 1) * 2 * square_width) + start_point + t_point(0, square_width);
-        }
+        drawrect(start_point, color_rectangle.top_right());
 
     }
+
+    /********
+     * Draw some example lines, shapes, and arcs
+     ********/
+    {
+        float radius = 50;
+
+        setcolor (BLACK);
+        drawtext (250,150,"drawline",150.0, FLT_MAX);
+        setlinestyle (SOLID);
+        drawline (200,120,200,200);
+        setlinestyle (DASHED);
+        drawline (300,120,300,200);
+
+        setcolor (MAGENTA);
+        drawtext (450, 160, "drawellipticarc", 150, FLT_MAX);
+        drawellipticarc (550, 160, 30, 60, 90, 270);
+        t_point cen(800,160);
+        drawtext (720, 160, "fillellipticarc", 150, FLT_MAX);
+        fillellipticarc (cen, 30, 60, 90, 270);
+
+        setcolor (BLUE);
+        drawtext (190,300,"drawarc", radius*2, 150);
+        drawarc (190,300,radius,0,270);
+        drawarc (300,300,radius,0,-180);
+        fillarc (410,300,radius,90, -90);
+        fillarc (520,300,radius,0,360);
+        setcolor (BLACK);
+        drawtext (520,300,"fillarc", radius*2, 150);
+        setcolor (BLUE);
+        fillarc (630,300,radius,90,180);
+        fillarc (740,300,radius,90,270);
+        fillarc (850,300,radius,90,30);
+    }
+
+    /********
+     * Draw some rotated text
+     ********/
+
+        {
+            const float textsquare_width = 200;
+
+            t_bound_box textsquare = t_bound_box(t_point(100,400), textsquare_width, textsquare_width);
+
+            setcolor(BLUE);
+            drawrect(textsquare);
+
+            setcolor(GREEN);
+            drawrect(textsquare.get_center(), textsquare.top_right());
+            drawrect(textsquare.bottom_left(), textsquare.get_center());
+
+            setcolor(RED);
+            drawline(textsquare.bottom_left(), textsquare.top_right());
+            drawline(textsquare.left(), textsquare.top(), textsquare.right(), textsquare.bottom());
+
+            setcolor(BLACK);
+            settextattrs(14,0); // set a reasonable font size, and zero rotation.
+            drawtext(textsquare.get_xcenter(), textsquare.bottom(),        "0 degrees", textsquare.get_width(), textsquare.get_height());
+            settextrotation(90);
+            drawtext(textsquare.right(),       textsquare.get_ycenter(),  "90 degrees", textsquare.get_width(), textsquare.get_height());
+            settextrotation(180);
+            drawtext(textsquare.get_xcenter(), textsquare.top(),         "180 degrees", textsquare.get_width(), textsquare.get_height());
+            settextrotation(270);
+            drawtext(textsquare.left(),        textsquare.get_ycenter(), "270 degrees", textsquare.get_width(), textsquare.get_height());
+
+            settextrotation(45);
+            drawtext(textsquare.get_center(), "45 degrees", textsquare.get_width(), textsquare.get_height());
+            settextrotation(135);
+            drawtext(textsquare.get_center(), "135 degrees", textsquare.get_width(), textsquare.get_height());
+
+            // It is probably a good idea to set text rotation back to zero,
+            // as this is the way most text will be drawn, and you dont't want
+            // to have to set it to zero every time you draw text. However,
+            // there are checks in the easygl graphics that make it a no-op to set the text size, or
+            // rotation, to the current value so there isn't a lot of speed hit to setting it all the time.
+            settextrotation(0);
+        }
+
+        /*******
+         * Draw some polygons
+         *******/
+
+        {
+            t_point polypts[3] = {{500,400},{450,480},{550,480}};
+            t_point polypts2[4] = {{700,400},{650,480},{750,480}, {800,400}};
+
+            setfontsize(10);
+            setcolor (RED);
+            fillpoly(polypts,3);
+            fillpoly(polypts2,4);
+            setcolor (BLACK);
+            drawtext (500,450,"fillpoly1",66.7, FLT_MAX);
+            drawtext (725,440,"fillpoly2",100.0, FLT_MAX);
+            setcolor (DARKGREEN);
+            setlinestyle(SOLID);
+            t_bound_box rect = t_bound_box(350,550,650,670);
+            drawtext_in(rect,"drawrect");
+            drawrect (rect);
+        }
+
+        /*********
+         * Draw some example text, with the bounding box functions
+         *********/
+
+        {
+            const float text_example_width = 800;
+
+            const int num_lines = 2;
+            const int max_strings_per_line = 3;
+
+            const int num_strings_per_line[num_lines] = {3,2};
+
+            // Text is UTF-8, so you can use special characters, as long as your font supports them.
+            const char* const line_text[num_lines][max_strings_per_line] = {
+                {
+                    "8 Point Text",
+                    "12 Point Text",
+                    "18 Point Text"
+                },
+                {
+                    "24 Point Text",
+                    "32 Point Text"
+                }
+            };
+
+            const int text_sizes[num_lines][max_strings_per_line] = {
+                {8,12,15},
+                {24,32}
+            };
+
+            setcolor (BLACK);
+            setlinestyle(DASHED);
+
+            for(int i = 0; i < num_lines; ++i) {
+                t_bound_box text_bbox = t_bound_box(t_point(100.,710. + i*60.), text_example_width/num_strings_per_line[i], 60.);
+                for(int j = 0; j < num_strings_per_line[i]; ++j) {
+                    setfontsize (text_sizes[i][j]);
+                    drawtext_in(text_bbox, line_text[i][j]);
+                    drawrect(text_bbox);
+
+                    text_bbox += t_point(text_example_width/num_strings_per_line[i],0);
+                }
+            }
+        }
 
         /********
          * Draw some lines of various thickness
