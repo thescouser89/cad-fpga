@@ -36,6 +36,9 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 // graphics coordinate system (ie. with inverted y; origin in top left)
 // const t_bound_box initial_coords = t_bound_box(0,1000,1000,0);
 
+// =========== Custom variables used to keep state =================
+static size_t size_grid = 10;
+static size_t tracks_per_channel = 9;
 
 int main() {
 
@@ -75,8 +78,8 @@ int main() {
 
     // Enable mouse movement (not just button presses) and key board input.
     // The appropriate callbacks will be called by event_loop.
-    set_keypress_input (true);
-    set_mouse_move_input (true);
+    set_keypress_input(true);
+    set_mouse_move_input(true);
     line_entering_demo = true;
 
     // draw the screen once before calling event loop, so the picture is correct
@@ -112,76 +115,198 @@ void drawscreen (void) {
     setlinewidth (1);
     setcolor (BLACK);
 
+    const t_point start_point = t_point(50, 50);
+    const float square_width = 100;
+    // =========================================================================
+    // Draw the switchbox
+    // =========================================================================
     {
-        /**************
-         * Draw some rectangles using the indexed colours
-         **************/
-
+        // set color of switchbox
         color_types color_switchbox = LIGHTGREY;
 
+        t_bound_box switchbox;
+        t_point next_point;
 
-        const float square_width = 100;
-        const t_point start_point = t_point(150,30);
-        t_bound_box color_square = t_bound_box(start_point, square_width, square_width);
+        for(size_t j = 0; j < size_grid; ++j) {
 
-        // text is UTF-8
-        drawtext (110, color_square.get_ycenter(), "colors", 2*(start_point.x - 110), square_width);
+            // move up to draw another row
+            next_point = start_point + t_point(0, j * 2 * square_width);
+            switchbox = t_bound_box(next_point, square_width, square_width);
 
-        for(size_t j = 0; j < 5; ++j) {
-            for(size_t i = 0; i < 5; ++i) {
+            for(size_t i = 0; i < size_grid; ++i) {
                 setcolor(color_switchbox);
-                fillrect(color_square);
-                color_square += t_point(square_width + square_width, 0);
+                // draw the box
+                fillrect(switchbox);
+
+                switchbox += t_point(2 * square_width, 0);
             }
-            t_point next_point = start_point + t_point(0, (j + 1) * 2 * square_width);
-            color_square = t_bound_box(next_point, square_width, square_width);
+        }
+    }
+    // =========================================================================
+    // Draw the tracks
+    // =========================================================================
+    {
+        // draw the horizontal tracks
+        const t_point track_start_point_horizontal = start_point + t_point(square_width, 0);
+        t_point next_point;
+        setlinestyle(SOLID);
+        setcolor(BLUE);
+
+        for (size_t j = 0; j < size_grid; ++j) {
+            next_point = track_start_point_horizontal + t_point(0, j * 2 * square_width);
+            for (size_t i = 0; i < size_grid - 1; ++i) {
+
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(next_point.x,
+                             next_point.y + spacing,
+                             next_point.x + square_width,
+                             next_point.y + spacing);
+                }
+
+                next_point += t_point(2 * square_width, 0);
+            }
         }
 
-        setcolor(BLACK);
-        t_point logic_start_point = t_point(square_width, square_width) + start_point;
+        const t_point track_start_point_vertical = start_point + t_point(0, square_width);
+        setlinestyle(SOLID);
+        setcolor(BLUE);
 
-        for (size_t j = 0; j < 4; ++j) {
-            for (size_t i = 0; i < 4; ++i) {
-                drawrect(logic_start_point, t_point(square_width, square_width) + logic_start_point);
-                logic_start_point += t_point(2 * square_width, 0);
+        // draw the vertical tracks
+        for (size_t j = 0; j < size_grid - 1; ++j) {
+            next_point = track_start_point_vertical + t_point(0, j * 2 * square_width);
+            for (size_t i = 0; i < size_grid; ++i) {
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(next_point.x + spacing,
+                             next_point.y,
+                             next_point.x + spacing,
+                             next_point.y + square_width);
+                }
+
+                next_point += t_point(2 * square_width, 0);
+
             }
-            logic_start_point = t_point(square_width, (j + 1) * 2 * square_width) + start_point + t_point(0, square_width);
         }
-
     }
 
-        /********
-         * Draw some lines of various thickness
-         ********/
-        {
-            setfontsize (10);
+    // =========================================================================
+    // Draw the logicbox
+    // =========================================================================
+    {
+        setcolor(BLACK);
+        const t_point logic_start_point = t_point(square_width, square_width) + start_point;
+        const size_t half_width = square_width / 2;
+        t_point square_logicbox;
 
-            setlinestyle (SOLID);
-            drawtext (200,900,"Thin line (width 1)", 200.0, FLT_MAX);
-            setlinewidth (1);
-            drawline (100,920,300,920);
-            drawtext (500,900,"Width 3 Line", 200.0, FLT_MAX);
-            setlinewidth (3);
-            drawline (400,920,600,920);
-            drawtext (800,900,"Width 6 Line", 200.0, FLT_MAX);
-            setlinewidth (6);
-            drawline (700,920,900,920);
+        for (size_t j = 0; j < size_grid - 1; ++j) {
+
+            square_logicbox = t_point(0, j * 2 * square_width) + logic_start_point;
+
+            for (size_t i = 0; i < size_grid - 1; ++i) {
+                // draw the logicbox
+                drawrect(square_logicbox, t_point(square_width, square_width) + square_logicbox);
+
+                // draw the label
+                setfontsize(10);
+                drawtext(square_logicbox.x + half_width, square_logicbox.y + half_width,
+                         std::to_string(i) + ", " + std::to_string(j), 200.0, FLT_MAX);
+
+                // move to the right
+                square_logicbox += t_point(2 * square_width, 0);
+            }
+        }
+    }
+    // =========================================================================
+    // Draw the logicbox pins
+    // =========================================================================
+    {
+        setfontsize(8);
+        // draw pin 1
+        t_point initial_point = start_point + t_point(square_width, square_width);
+        t_point current_point;
+        for (size_t j = 0; j < size_grid - 1; ++j) {
+
+            current_point = t_point(0, j * 2 * square_width) + initial_point;
+
+            for(size_t i = 0; i < size_grid - 1; ++i) {
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(current_point.x + (square_width / 4),
+                             current_point.y,
+                             current_point.x + (square_width / 4),
+                             current_point.y - spacing);
+                    drawtext(current_point.x + (square_width / 4), current_point.y - spacing,
+                             "x", 200.0, FLT_MAX);
+                }
+                current_point += t_point(2 * square_width, 0);
+            }
         }
 
-        /********
-         * Draw the rubber-band line, if it's there
-         ********/
+        // draw pin 2
+        initial_point = start_point + t_point(2 * square_width, 2 * square_width);
+        for (size_t j = 0; j < size_grid - 1; ++j) {
 
-            setlinewidth (1);
-            setcolor (GREEN);
+            current_point = t_point(0, j * 2 * square_width) + initial_point;
 
-            for (unsigned int i = 1; i < line_pts.size(); i++)
-                drawline (line_pts[i-1], line_pts[i]);
+            for(size_t i = 0; i < size_grid - 1; ++i) {
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(current_point.x,
+                             current_point.y - (square_width / 4),
+                             current_point.x + spacing,
+                             current_point.y - (square_width / 4));
+                    drawtext(current_point.x + spacing, current_point.y - (square_width / 4),
+                             "x", 200.0, FLT_MAX);
+                }
+                current_point += t_point(2 * square_width, 0);
 
-            // Screen redraw will get rid of a rubber line.
-            have_rubber_line = false;
+            }
+        }
+
+        // draw pin 3
+        initial_point = start_point + t_point(2 * square_width, 2 * square_width);
+        for (size_t j = 0; j < size_grid - 1; ++j) {
+            current_point = t_point(0, j * 2 * square_width) + initial_point;
+            for(size_t i = 0; i < size_grid - 1; ++i) {
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(current_point.x - (square_width / 4),
+                             current_point.y,
+                             current_point.x - (square_width / 4),
+                             current_point.y + spacing);
+                    drawtext(current_point.x - (square_width / 4), current_point.y + spacing,
+                             "x", 200.0, FLT_MAX);
+                }
+                current_point += t_point(2 * square_width, 0);
+            }
+        }
+
+        // draw pin 4
+        initial_point = start_point + t_point(square_width, square_width);
+        for (size_t j = 0; j < size_grid - 1; ++j) {
+            current_point = t_point(0, j * 2 * square_width) + initial_point;
+            for(size_t i = 0; i < size_grid - 1; ++i) {
+                for (size_t track = 1; track <= tracks_per_channel; ++track) {
+                    size_t width_per_track = square_width / (tracks_per_channel + 1);
+                    size_t spacing = width_per_track * track;
+                    drawline(current_point.x,
+                             current_point.y + (square_width / 4),
+                             current_point.x - spacing,
+                             current_point.y + (square_width / 4));
+                    drawtext(current_point.x - spacing, current_point.y + (square_width / 4),
+                             "x", 200.0, FLT_MAX);
+                }
+                current_point += t_point(2 * square_width, 0);
+            }
+        }
+    }
 }
-
 
 void delay (long milliseconds) {
     // if you would like to use this function in your
