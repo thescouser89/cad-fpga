@@ -38,7 +38,7 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 
 // =========== Custom variables used to keep state =================
 static size_t size_grid = 10;
-static size_t tracks_per_channel = 9;
+static size_t tracks_per_channel = 4;
 
 int main() {
 
@@ -239,6 +239,11 @@ void drawscreen (void) {
                              current_point.y,
                              current_point.x + (square_width / 4),
                              current_point.y - spacing);
+
+                    if (track == 1) {
+                    drawtext(current_point.x + (square_width / 4), current_point.y + 8,
+                             "1", 200.0, FLT_MAX);
+                    }
                     drawtext(current_point.x + (square_width / 4), current_point.y - spacing,
                              "x", 200.0, FLT_MAX);
                 }
@@ -260,6 +265,10 @@ void drawscreen (void) {
                              current_point.y - (square_width / 4),
                              current_point.x + spacing,
                              current_point.y - (square_width / 4));
+                    if (track == 1) {
+                        drawtext(current_point.x - 8, current_point.y - (square_width / 4),
+                                 "2", 200.0, FLT_MAX);
+                    }
                     drawtext(current_point.x + spacing, current_point.y - (square_width / 4),
                              "x", 200.0, FLT_MAX);
                 }
@@ -280,6 +289,10 @@ void drawscreen (void) {
                              current_point.y,
                              current_point.x - (square_width / 4),
                              current_point.y + spacing);
+                    if (track == 1) {
+                        drawtext(current_point.x - (square_width / 4), current_point.y - 8,
+                                 "3", 200.0, FLT_MAX);
+                    }
                     drawtext(current_point.x - (square_width / 4), current_point.y + spacing,
                              "x", 200.0, FLT_MAX);
                 }
@@ -299,6 +312,10 @@ void drawscreen (void) {
                              current_point.y + (square_width / 4),
                              current_point.x - spacing,
                              current_point.y + (square_width / 4));
+                    if (track == 1) {
+                        drawtext(current_point.x + 8, current_point.y + (square_width / 4),
+                                 "4", 200.0, FLT_MAX);
+                    }
                     drawtext(current_point.x - spacing, current_point.y + (square_width / 4),
                              "x", 200.0, FLT_MAX);
                 }
