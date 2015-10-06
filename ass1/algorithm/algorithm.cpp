@@ -67,14 +67,14 @@ void process_bidirectional(Coord* to_process, vector<Coord*>* q) {
         if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // left
 
         // right segments to switchbox
-        if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));         // left
-        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // bottom
         if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment)); // right
+        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // bottom
+        if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));         // left
     } else {
         // top segments to switchbox
-        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // left
-        if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));         // bottom
         if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment)); // right
+        if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));         // bottom
+        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // left
 
         // bottom segments to switchbox
         if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // right
@@ -83,7 +83,6 @@ void process_bidirectional(Coord* to_process, vector<Coord*>* q) {
     }
 }
 
-// add stuff to queue
 void process_unidirectional(Coord* to_process, vector<Coord*>* q) {
     int x = to_process->x;
     int y = to_process->y;
@@ -99,28 +98,68 @@ void process_unidirectional(Coord* to_process, vector<Coord*>* q) {
             if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment + 1)); // top
         } else {
             // from the right odd segment to the switchbox
+            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // bottom
             if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));             // left
             if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // top
-            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // bottom
         }
     } else {
         if (segment % 2 == 0) {
             // from the top even segment to the switchbox
-            if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));             // bottom
             if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
+            if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));             // bottom
             if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment + 1)); // left
         } else {
             // from the bottom odd segment to the switchbox
+            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment - 1)); // right
             if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // left
             if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));             // top
-            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment - 1)); // right
         }
     }
 }
 
+void process_unidirectional_reverse(Coord* to_process, vector<Coord*>* q) {
+    int x = to_process->x;
+    int y = to_process->y;
+    int segment = to_process->segment;
 
+    q->clear();
 
-void block_connectivity(Coord* to_process, vector<Coord*>* q, bool unidirectional=false) {
+    if (is_segment_horizontal(y)) {
+        if (segment % 2 == 0) {
+            // from the right even segment away from the switchbox
+            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment + 1)); // bottom
+            if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));             // left
+            if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // top
+        } else {
+            // from the left odd segment away from the switchbox
+            if (is_coord_valid(x + 2, y)) q->push_back(new Coord(x + 2, y, segment));             // right
+            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // bottom
+            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment - 1)); // top
+        }
+    } else {
+        if (segment % 2 == 0) {
+            // from the bottom even segment away from the switchbox
+            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment + 1)); // right
+            if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // left
+            if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));             // top
+        } else {
+            // from the top odd segment away from the switchbox
+            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
+            if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));             // bottom
+            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // left
+        }
+    }
+}
+
+void block_connectivity_reverse(Coord* to_process, vector<Coord*>* q, bool unidirectional=true) {
+    if (unidirectional) {
+        process_unidirectional_reverse(to_process, q);
+    } else {
+        process_bidirectional(to_process, q);
+    }
+}
+
+void block_connectivity(Coord* to_process, vector<Coord*>* q, bool unidirectional=true) {
     if (unidirectional) {
         process_unidirectional(to_process, q);
     } else {
@@ -241,7 +280,7 @@ int main(void) {
     queue<Coord*> to_process_queue;
 
     vector<Coord*> vec_segments;
-    segments_connected_to_logicbox_coord(0, 0, 1, &vec_segments);
+    segments_connected_to_logicbox_coord(0, 0, 4, &vec_segments);
 
     // initial pins
     for (int i = 0; i < vec_segments.size(); i++) {
@@ -251,7 +290,7 @@ int main(void) {
 
     // now let's add the target
     vec_segments.clear();
-    segments_connected_to_logicbox_coord(1, 1, 3, &vec_segments);
+    segments_connected_to_logicbox_coord(3, 3, 2, &vec_segments);
     // target pins
     for (int i = 0; i < vec_segments.size(); i++) {
         mark_as_visited(vec_segments[i], TARGET);
@@ -293,6 +332,36 @@ int main(void) {
         if (found) {
             break;
         }
+    }
+
+    queue<Coord*> soln;
+
+    // traceback
+
+    cout << "Traceback" << endl;
+
+    while(found_coord != NULL) {
+        int count_found_coord = visited[found_coord->x][found_coord->y][found_coord->segment];
+
+        soln.push(found_coord);
+        if (count_found_coord == 1) {
+            break;
+        }
+
+        block_connectivity_reverse(found_coord, &vec_segments);
+        for (int i = 0; i < vec_segments.size(); i++) {
+            Coord* lower = vec_segments[i];
+            if (visited[lower->x][lower->y][lower->segment] == count_found_coord - 1) {
+                found_coord = lower;
+                break;
+            }
+        }
+    }
+
+    while(!soln.empty()) {
+        Coord* path = soln.front();
+        soln.pop();
+        cout << path->x << " " << path->y << " " << path-> segment << endl;
     }
 
     cout << "Cleanup" << endl;
