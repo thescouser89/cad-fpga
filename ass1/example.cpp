@@ -12,11 +12,11 @@ void act_on_new_button_func (void (*drawscreen_ptr) (void));
 void act_on_button_press (float x, float y, t_event_buttonPressed event);
 void act_on_mouse_move (float x, float y);
 void act_on_key_press (char c);
-void draw_segment(int x, int y, int track);
+void draw_segment_line(int x, int y, int segment);
 void draw_logicbox();
 void draw_logicbox_pins();
 void draw_switchbox();
-void draw_tracks();
+void draw_segments();
 
 
 // A handy delay function for the animation example
@@ -39,8 +39,8 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 
 
 // =========== Custom variables used to keep state =================
-static size_t size_grid = 3;
-static size_t tracks_per_channel = 4;
+static size_t size_grid = 10;
+static size_t segments_per_channel = 4;
 static const t_point start_point = t_point(50, 50);
 static const float square_width = 100;
 
@@ -96,7 +96,7 @@ int main() {
     return (0);
 }
 
-void draw_segment(int x, int y, int track) {
+void draw_segment_line(int x, int y, int segment) {
 
     bool is_horizontal = (y % 2 == 0);
 
@@ -106,8 +106,8 @@ void draw_segment(int x, int y, int track) {
     int x_posn = start_x_posn + (square_width * x);
     int y_posn = start_y_posn + (square_width * y);
 
-    size_t width_per_track = square_width / (tracks_per_channel + 1);
-    size_t spacing = width_per_track * (track + 1);
+    size_t width_per_segment = square_width / (segments_per_channel + 1);
+    size_t spacing = width_per_segment * (segment + 1);
 
     setcolor(YELLOW);
     setlinewidth(5);
@@ -149,9 +149,9 @@ void draw_switchbox() {
     }
 }
 
-void draw_tracks() {
-    // draw the horizontal tracks
-    const t_point track_start_point_horizontal = start_point + t_point(square_width, 0);
+void draw_segments() {
+    // draw the horizontal segments
+    const t_point segment_start_point_horizontal = start_point + t_point(square_width, 0);
 
     t_point next_point;
 
@@ -159,39 +159,36 @@ void draw_tracks() {
     setcolor(BLUE);
 
     for (size_t j = 0; j < size_grid; ++j) {
-        next_point = track_start_point_horizontal + t_point(0, j * 2 * square_width);
+        next_point = segment_start_point_horizontal + t_point(0, j * 2 * square_width);
         for (size_t i = 0; i < size_grid - 1; ++i) {
 
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(next_point.x,
                          next_point.y + spacing,
                          next_point.x + square_width,
                          next_point.y + spacing);
             }
-
             next_point += t_point(2 * square_width, 0);
         }
     }
 
-    const t_point track_start_point_vertical = start_point + t_point(0, square_width);
+    const t_point segment_start_point_vertical = start_point + t_point(0, square_width);
 
-    // draw the vertical tracks
+    // draw the vertical segments
     for (size_t j = 0; j < size_grid - 1; ++j) {
-        next_point = track_start_point_vertical + t_point(0, j * 2 * square_width);
+        next_point = segment_start_point_vertical + t_point(0, j * 2 * square_width);
         for (size_t i = 0; i < size_grid; ++i) {
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(next_point.x + spacing,
                          next_point.y,
                          next_point.x + spacing,
                          next_point.y + square_width);
             }
-
             next_point += t_point(2 * square_width, 0);
-
         }
     }
 }
@@ -232,15 +229,15 @@ void draw_logicbox_pins() {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
 
         for(size_t i = 0; i < size_grid - 1; ++i) {
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(current_point.x + (square_width / 4),
                          current_point.y,
                          current_point.x + (square_width / 4),
                          current_point.y - spacing);
 
-                if (track == 1) {
+                if (segment == 1) {
                 drawtext(current_point.x + (square_width / 4), current_point.y + 8,
                          "1", 200.0, FLT_MAX);
                 }
@@ -258,14 +255,14 @@ void draw_logicbox_pins() {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
 
         for(size_t i = 0; i < size_grid - 1; ++i) {
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(current_point.x,
                          current_point.y - (square_width / 4),
                          current_point.x + spacing,
                          current_point.y - (square_width / 4));
-                if (track == 1) {
+                if (segment == 1) {
                     drawtext(current_point.x - 8, current_point.y - (square_width / 4),
                              "2", 200.0, FLT_MAX);
                 }
@@ -282,14 +279,14 @@ void draw_logicbox_pins() {
     for (size_t j = 0; j < size_grid - 1; ++j) {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
         for(size_t i = 0; i < size_grid - 1; ++i) {
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(current_point.x - (square_width / 4),
                          current_point.y,
                          current_point.x - (square_width / 4),
                          current_point.y + spacing);
-                if (track == 1) {
+                if (segment == 1) {
                     drawtext(current_point.x - (square_width / 4), current_point.y - 8,
                              "3", 200.0, FLT_MAX);
                 }
@@ -305,14 +302,14 @@ void draw_logicbox_pins() {
     for (size_t j = 0; j < size_grid - 1; ++j) {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
         for(size_t i = 0; i < size_grid - 1; ++i) {
-            for (size_t track = 1; track <= tracks_per_channel; ++track) {
-                size_t width_per_track = square_width / (tracks_per_channel + 1);
-                size_t spacing = width_per_track * track;
+            for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
+                size_t width_per_segment = square_width / (segments_per_channel + 1);
+                size_t spacing = width_per_segment * segment;
                 drawline(current_point.x,
                          current_point.y + (square_width / 4),
                          current_point.x - spacing,
                          current_point.y + (square_width / 4));
-                if (track == 1) {
+                if (segment == 1) {
                     drawtext(current_point.x + 8, current_point.y + (square_width / 4),
                              "4", 200.0, FLT_MAX);
                 }
@@ -336,11 +333,11 @@ void drawscreen(void) {
 
 
     draw_switchbox();
-    draw_tracks();
+    draw_segments();
     draw_logicbox();
     draw_logicbox_pins();
 
-    draw_segment(8, 7, 3);
+    draw_segment_line(8, 7, 3);
 }
 
 void delay(long milliseconds) {
