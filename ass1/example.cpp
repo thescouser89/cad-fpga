@@ -12,6 +12,7 @@ void act_on_new_button_func (void (*drawscreen_ptr) (void));
 void act_on_button_press (float x, float y, t_event_buttonPressed event);
 void act_on_mouse_move (float x, float y);
 void act_on_key_press (char c);
+void draw_line(int x, int y, int track);
 
 // A handy delay function for the animation example
 void delay (long milliseconds);
@@ -38,7 +39,7 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 
 // =========== Custom variables used to keep state =================
 static size_t size_grid = 10;
-static size_t tracks_per_channel = 4;
+static size_t tracks_per_channel = 7;
 
 int main() {
 
@@ -99,6 +100,37 @@ int main() {
     return (0);
 }
 
+void draw_line(int x, int y, int track) {
+
+    bool is_horizontal = (y % 2 == 0);
+
+    const t_point start_point = t_point(50, 50);
+    const float square_width = 100;
+
+    int start_x_posn = start_point.x;
+    int start_y_posn = start_point.y;
+
+    int x_posn = start_x_posn + (square_width * x);
+    int y_posn = start_y_posn + (square_width * y);
+
+    size_t width_per_track = square_width / (tracks_per_channel + 1);
+    size_t spacing = width_per_track * (track + 1);
+
+    setcolor(YELLOW);
+
+    if(is_horizontal) {
+        drawline(x_posn,
+                 y_posn + spacing,
+                 x_posn + square_width,
+                 y_posn + spacing);
+    } else {
+        drawline(x_posn + spacing,
+                 y_posn,
+                 x_posn + spacing,
+                 y_posn + square_width);
+    }
+
+}
 
 void drawscreen (void) {
 
@@ -323,6 +355,7 @@ void drawscreen (void) {
             }
         }
     }
+    draw_line(4, 3, 5);
 }
 
 void delay (long milliseconds) {
