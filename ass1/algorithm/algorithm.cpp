@@ -1,5 +1,6 @@
 #include <iostream>
 #include <queue>
+#include <stack>
 #include <vector>
 
 using namespace std;
@@ -301,6 +302,7 @@ int main(void) {
 
     bool found = false;
     Coord* found_coord;
+    Coord* target_coord;
     while(!to_process_queue.empty()) {
         count++;
         int size_of_queue = to_process_queue.size();
@@ -316,6 +318,7 @@ int main(void) {
                 if (is_target(hoho)) {
                     found = true;
                     found_coord = haha;
+                    target_coord = hoho;
                     break;
                 } else if (is_already_visited(hoho)) {
                     continue;
@@ -334,13 +337,16 @@ int main(void) {
         }
     }
 
-    queue<Coord*> soln;
+    stack<Coord*> soln;
 
     // traceback
-
     cout << "Traceback" << endl;
 
-    while(found_coord != NULL) {
+    if (target_coord != NULL) {
+        soln.push(target_coord);
+    }
+
+    while (found_coord != NULL) {
         int count_found_coord = visited[found_coord->x][found_coord->y][found_coord->segment];
 
         soln.push(found_coord);
@@ -359,7 +365,7 @@ int main(void) {
     }
 
     while(!soln.empty()) {
-        Coord* path = soln.front();
+        Coord* path = soln.top();
         soln.pop();
         cout << path->x << " " << path->y << " " << path-> segment << endl;
     }
