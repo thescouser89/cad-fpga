@@ -49,7 +49,6 @@ bool is_segment_vertical(int y) {
     return !is_segment_horizontal(y);
 }
 
-// TODO: need to add upper bound limit
 bool is_coord_valid(int x, int y) {
     return (x >= 0) && (x <= max_x) && (y >= 0) && (y <= max_y);
 }
