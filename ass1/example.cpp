@@ -248,7 +248,7 @@ void segments_connected_to_logicbox_coord(int x, int y, int pin, vector<Coord*>*
 
 void initialize_array(int ****array) {
     cout << max_x << " " << max_y << " " << segments_per_channel << endl;
-    *array = new int**[max_x + 1];
+    (*array) = new int**[max_x + 1];
 
     for (int i = 0; i < max_x + 1; ++i) {
         (*array)[i] = new int*[max_y + 1];
