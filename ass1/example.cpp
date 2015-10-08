@@ -5,17 +5,14 @@
 #include <cstdlib>
 #include <vector>
 #include <queue>
+#include <fstream>
 #include <stack>
 #include "graphics.h"
 
 using namespace std;
 
 // Callbacks for event-driven window handling.
-void drawscreen (void);
-void act_on_new_button_func (void (*drawscreen_ptr) (void));
-void act_on_button_press (float x, float y, t_event_buttonPressed event);
-void act_on_mouse_move (float x, float y);
-void act_on_key_press (char c);
+void drawscreen(void);
 void draw_segment_line(int x, int y, int segment);
 void draw_logicbox();
 void draw_logicbox_pins();
@@ -25,15 +22,6 @@ void draw_segments();
 
 // A handy delay function for the animation example
 void delay (long milliseconds);
-
-// State variables for the example showing entering lines and rubber banding
-// and the new button example.
-static bool line_entering_demo = false;
-static bool have_rubber_line = false;
-static t_point rubber_pt;         // Last point to which we rubber-banded.
-static std::vector<t_point> line_pts;  // Stores the points entered by user clicks.
-static int num_new_button_clicks = 0;
-
 
 // You can use any coordinate system you want.
 // The coordinate system below matches what you have probably seen in math
@@ -300,7 +288,18 @@ void mark_as_visited(Coord* coord, int num) {
     visited[x][y][segment] = num;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    if (argc != 2) {
+        cout << "You need to provide a circuit file" << endl;
+        exit(1);
+    }
+
+    cout << "Reading config file " << endl;
+    ifstream input(argv[1]);
+    input >> grid;
+    size_grid = grid + 2;
+    input >> segments_per_channel;
 
     std::cout << "About to start graphics.\n";
 
@@ -322,29 +321,6 @@ int main() {
     // the user presses the proceed button.
 
     event_loop(NULL, NULL, NULL, drawscreen);
-    t_bound_box old_coords = get_visible_world(); // save the current view for later;
-
-    /**** Draw an interactive still picture again.  I'm also creating one new button. ****/
-    update_message("yolo");
-    create_button ("Window", "0 Clicks", act_on_new_button_func); // name is UTF-8
-
-    // Enable mouse movement (not just button presses) and key board input.
-    // The appropriate callbacks will be called by event_loop.
-    set_keypress_input(true);
-    set_mouse_move_input(true);
-    line_entering_demo = true;
-
-    // draw the screen once before calling event loop, so the picture is correct
-    // before we get user input.
-    set_visible_world(old_coords); // restore saved coords -- this takes us back to where the user panned/zoomed.
-    drawscreen();
-
-    // Call event_loop again so we get interactive graphics again.
-    // This time pass in all the optional callbacks so we can take
-    // action on mouse buttons presses, mouse movement, and keyboard
-    // key presses.
-    event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
-
     close_graphics ();
     std::cout << "Graphics closed down.\n";
 
@@ -679,9 +655,6 @@ void run_algorithm() {
     }
 
     cout << "Cleanup" << endl;
-    // =========================================================================
-    // Cleanup
-    // =========================================================================
     cleanup_array(&visited);
 }
 
@@ -711,85 +684,3 @@ void delay(long milliseconds) {
     std::chrono::milliseconds duration(milliseconds);
     std::this_thread::sleep_for(duration);
 }
-
-
-void act_on_new_button_func(void (*drawscreen_ptr) (void)) {
-
-    char old_button_name[200], new_button_name[200];
-    std::cout << "You pressed the new button!\n";
-    setcolor (MAGENTA);
-    setfontsize (12);
-    drawtext (500, 500, "You pressed the new button!", 10000.0, FLT_MAX);
-    sprintf (old_button_name, "%d Clicks", num_new_button_clicks);
-    num_new_button_clicks++;
-    sprintf (new_button_name, "%d Clicks", num_new_button_clicks);
-    change_button_text (old_button_name, new_button_name);
-
-    // Re-draw the screen (a few squares are changing colour with time)
-    drawscreen_ptr ();
-}
-
-
-void act_on_button_press(float x, float y, t_event_buttonPressed event) {
-
-    /* Called whenever event_loop gets a button press in the graphics *
-     * area.  Allows the user to do whatever he/she wants with button *
-     * clicks.                                                        */
-
-    std::cout << "User clicked a mouse button at coordinates ("
-        << x << "," << y << ")";
-    if (event.shift_pressed || event.ctrl_pressed) {
-        std::cout << " with ";
-        if (event.shift_pressed) {
-            std::cout << "shift ";
-            if (event.ctrl_pressed)
-                std::cout << "and ";
-        }
-        if (event.ctrl_pressed)
-            std::cout << "control ";
-        std::cout << "pressed.";
-    }
-    std::cout << std::endl;
-
-    if (line_entering_demo) {
-        line_pts.push_back(t_point(x,y));
-        have_rubber_line = false;
-
-        // Redraw screen to show the new line.  Could do incrementally, but this is easier.
-        drawscreen();
-    }
-}
-
-
-void act_on_mouse_move(float x, float y) {
-    // function to handle mouse move event, the current mouse position in the current world coordinate
-    // system (as defined in your call to init_world) is returned
-
-    std::cout << "Mouse move at " << x << "," << y << ")\n";
-    if (line_pts.size() > 0 ) {
-        // Rubber banding to a previously entered point.
-        // Go into XOR mode.  Make sure we set the linestyle etc. for xor mode, since it is
-        // stored in different state than normal mode.
-        set_draw_mode(DRAW_XOR);
-        setlinestyle(SOLID);
-        setcolor(WHITE);
-        setlinewidth(1);
-        int ipt = line_pts.size()-1;
-
-        if (have_rubber_line) {
-            // Erase old line.
-            drawline (line_pts[ipt], rubber_pt);
-        }
-        have_rubber_line = true;
-        rubber_pt.x = x;
-        rubber_pt.y = y;
-        drawline (line_pts[ipt], rubber_pt);   // Draw new line
-    }
-}
-
-
-void act_on_key_press(char c) {
-    // function to handle keyboard press event, the ASCII character is returned
-    std::cout << "Key press: " << c << std::endl;
-}
-
