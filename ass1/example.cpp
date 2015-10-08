@@ -31,6 +31,7 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 
 
 // =========== Custom variables used to keep state =================
+static bool is_unidirectional = false;
 static int segments_used = 0;
 static size_t grid = 5;
 static size_t size_grid = grid + 2;
@@ -40,7 +41,7 @@ static int max_x;
 static int max_y;
 static int ***visited;
 
-static const t_point start_point = t_point(10, 10);
+static const t_point start_point = t_point(0, 0);
 static const float square_width = 40; // must be a power of 4
 char* circuit_file;
 
@@ -554,7 +555,6 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
     // Setup
     // =========================================================================
     // setup the global variables
-    bool unidirectional = true;
 
 
     queue<Coord*> to_process_queue;
@@ -602,7 +602,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
             Coord* haha = to_process_queue.front();
 
             to_process_queue.pop();
-            block_connectivity(haha, &vec_segments, unidirectional);
+            block_connectivity(haha, &vec_segments, is_unidirectional);
 
             for (size_t j = 0; j < vec_segments.size(); j++) {
                 Coord* hoho = vec_segments[j];
@@ -647,7 +647,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
             break;
         }
 
-        block_connectivity_reverse(found_coord, &vec_segments, unidirectional);
+        block_connectivity_reverse(found_coord, &vec_segments, is_unidirectional);
         for (size_t i = 0; i < vec_segments.size(); i++) {
             Coord* lower = vec_segments[i];
             if (visited[lower->x][lower->y][lower->segment] == count_found_coord - 1) {
