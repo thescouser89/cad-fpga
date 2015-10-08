@@ -40,7 +40,7 @@ static int max_y;
 static int ***visited;
 
 static const t_point start_point = t_point(50, 50);
-static const float square_width = 70;
+static const float square_width = 100; // must be a power of 4
 char* circuit_file;
 
 // Used as markers for the visited array
@@ -335,8 +335,8 @@ void draw_segment_line(int x, int y, int segment) {
     int x_posn = start_x_posn + (square_width * x);
     int y_posn = start_y_posn + (square_width * y);
 
-    size_t width_per_segment = square_width / (segments_per_channel + 1);
-    size_t spacing = width_per_segment * (segment + 1);
+    double width_per_segment = (double)square_width / (segments_per_channel + 1);
+    double spacing = width_per_segment * (segment + 1);
 
     setlinewidth(5);
 
@@ -391,8 +391,8 @@ void draw_segments() {
         for (size_t i = 0; i < size_grid - 1; ++i) {
 
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                double width_per_segment = (double)square_width / (segments_per_channel + 1);
+                double spacing = width_per_segment * segment;
                 drawline(next_point.x,
                          next_point.y + spacing,
                          next_point.x + square_width,
@@ -409,8 +409,8 @@ void draw_segments() {
         next_point = segment_start_point_vertical + t_point(0, j * 2 * square_width);
         for (size_t i = 0; i < size_grid; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                double width_per_segment = (double)square_width / (segments_per_channel + 1);
+                double spacing = width_per_segment * segment;
                 drawline(next_point.x + spacing,
                          next_point.y,
                          next_point.x + spacing,
@@ -448,6 +448,8 @@ void draw_logicbox() {
 }
 
 void draw_logicbox_pins() {
+    double width_per_segment = (double)square_width / (segments_per_channel + 1);
+    double spacing;
     setfontsize(8);
     // draw pin 1
     t_point initial_point = start_point + t_point(square_width, square_width);
@@ -458,8 +460,7 @@ void draw_logicbox_pins() {
 
         for(size_t i = 0; i < size_grid - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                spacing = width_per_segment * segment;
                 drawline(current_point.x + (square_width / 4),
                          current_point.y,
                          current_point.x + (square_width / 4),
@@ -484,8 +485,7 @@ void draw_logicbox_pins() {
 
         for(size_t i = 0; i < size_grid - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                spacing = width_per_segment * segment;
                 drawline(current_point.x,
                          current_point.y - (square_width / 4),
                          current_point.x + spacing,
@@ -508,8 +508,7 @@ void draw_logicbox_pins() {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
         for(size_t i = 0; i < size_grid - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                spacing = width_per_segment * segment;
                 drawline(current_point.x - (square_width / 4),
                          current_point.y,
                          current_point.x - (square_width / 4),
@@ -531,8 +530,7 @@ void draw_logicbox_pins() {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
         for(size_t i = 0; i < size_grid - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
-                size_t width_per_segment = square_width / (segments_per_channel + 1);
-                size_t spacing = width_per_segment * segment;
+                spacing = width_per_segment * segment;
                 drawline(current_point.x,
                          current_point.y + (square_width / 4),
                          current_point.x - spacing,
@@ -555,7 +553,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
     // Setup
     // =========================================================================
     // setup the global variables
-    bool unidirectional = false;
+    bool unidirectional = true;
 
 
     queue<Coord*> to_process_queue;
@@ -627,6 +625,10 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
         if (found) {
             break;
         }
+    }
+
+    if (found == false) {
+        cout << "Did not find " << logic_orig_x << logic_orig_y << logic_orig_pin << endl;
     }
 
     stack<Coord*> soln;
@@ -713,15 +715,22 @@ void drawscreen(void) {
     draw_logicbox_pins();
 
     color_types color_indicies[] = {
-        LIGHTGREY,
-        DARKGREY,
-        WHITE,
         BLACK,
-        BLUE,
-        GREEN,
-        YELLOW,
-        CYAN,
+        DARKGREY,
         RED,
+        ORANGE,
+        YELLOW,
+        GREEN,
+        CYAN,
+        BLUE,
+        PURPLE,
+        BISQUE,
+        CORAL,
+        FIREBRICK,
+        LIMEGREEN,
+        THISTLE,
+        PLUM,
+        CYAN,
         DARKGREEN,
         MAGENTA
     };
@@ -733,7 +742,7 @@ void drawscreen(void) {
 
         if (logic_orig_x == -1) break;
 
-        setcolor(color_indicies[count % 11]);
+        setcolor(color_indicies[count % 18]);
         count++;
         run_algorithm(logic_orig_x, logic_orig_y, logic_orig_pin,
                       logic_target_x, logic_target_y, logic_target_pin);
