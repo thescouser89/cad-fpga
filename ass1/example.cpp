@@ -31,6 +31,7 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 
 
 // =========== Custom variables used to keep state =================
+static int segments_used = 0;
 static size_t grid = 5;
 static size_t size_grid = grid + 2;
 static size_t segments_per_channel = 4;
@@ -39,8 +40,8 @@ static int max_x;
 static int max_y;
 static int ***visited;
 
-static const t_point start_point = t_point(50, 50);
-static const float square_width = 100; // must be a power of 4
+static const t_point start_point = t_point(10, 10);
+static const float square_width = 40; // must be a power of 4
 char* circuit_file;
 
 // Used as markers for the visited array
@@ -91,21 +92,21 @@ void process_bidirectional(Coord* to_process, vector<Coord*>* q) {
         // left segments to switchbox
         if (is_coord_valid(x + 2, y)) q->push_back(new Coord(x + 2, y, segment));         // right
         if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment)); // bottom
-        if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // left
+        if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // top
 
         // right segments to switchbox
-        if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment)); // right
-        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // bottom
         if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));         // left
+        if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // bottom
+        if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment)); // top
     } else {
         // top segments to switchbox
-        if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment)); // right
         if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));         // bottom
         if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment)); // left
+        if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment)); // right
 
         // bottom segments to switchbox
-        if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // right
         if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));         // top
+        if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment)); // right
         if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment)); // left
     }
 }
@@ -126,21 +127,21 @@ void process_unidirectional(Coord* to_process, vector<Coord*>* q) {
             if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment + 1)); // top
         } else {
             // from the right odd segment to the switchbox
-            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // bottom
             if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));             // left
+            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // bottom
             if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // top
         }
     } else {
         if (segment % 2 == 0) {
             // from the top even segment to the switchbox
-            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
             if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));             // bottom
             if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment + 1)); // left
+            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
         } else {
             // from the bottom odd segment to the switchbox
+            if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));             // top
             if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment - 1)); // right
             if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // left
-            if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));             // top
         }
     }
 }
@@ -155,8 +156,8 @@ void process_unidirectional_reverse(Coord* to_process, vector<Coord*>* q) {
     if (is_segment_horizontal(y)) {
         if (segment % 2 == 0) {
             // from the right even segment away from the switchbox
-            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment + 1)); // bottom
             if (is_coord_valid(x - 2, y)) q->push_back(new Coord(x - 2, y, segment));             // left
+            if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment + 1)); // bottom
             if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // top
         } else {
             // from the left odd segment away from the switchbox
@@ -167,13 +168,13 @@ void process_unidirectional_reverse(Coord* to_process, vector<Coord*>* q) {
     } else {
         if (segment % 2 == 0) {
             // from the bottom even segment away from the switchbox
-            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment + 1)); // right
-            if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // left
             if (is_coord_valid(x, y + 2)) q->push_back(new Coord(x, y + 2, segment));             // top
+            if (is_coord_valid(x - 1, y + 1)) q->push_back(new Coord(x - 1, y + 1, segment));     // left
+            if (is_coord_valid(x + 1, y + 1)) q->push_back(new Coord(x + 1, y + 1, segment + 1)); // right
         } else {
             // from the top odd segment away from the switchbox
-            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
             if (is_coord_valid(x, y - 2)) q->push_back(new Coord(x, y - 2, segment));             // bottom
+            if (is_coord_valid(x + 1, y - 1)) q->push_back(new Coord(x + 1, y - 1, segment));     // right
             if (is_coord_valid(x - 1, y - 1)) q->push_back(new Coord(x - 1, y - 1, segment - 1)); // left
         }
     }
@@ -662,6 +663,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
         visited[path->x][path->y][path->segment] = UNAVAILABLE;
         // cout << path->x << " " << path->y << " " << path->segment << endl;
         draw_segment_line(path->x, path->y, path->segment);
+        segments_used++;
     }
     /*
      * cout << "-----" << endl;
@@ -686,6 +688,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
 
 void drawscreen(void) {
 
+    segments_used = 0;
     int logic_orig_x, logic_orig_y, logic_orig_pin;
     int logic_target_x, logic_target_y, logic_target_pin;
 
@@ -747,6 +750,8 @@ void drawscreen(void) {
         run_algorithm(logic_orig_x, logic_orig_y, logic_orig_pin,
                       logic_target_x, logic_target_y, logic_target_pin);
     }
+
+    cout << "Segments Used: " << segments_used << endl;
 }
 
 void delay(long milliseconds) {
