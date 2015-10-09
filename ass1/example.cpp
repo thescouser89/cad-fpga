@@ -34,8 +34,8 @@ const t_bound_box initial_coords = t_bound_box(0,0,1000,1000);
 // =========== Custom variables used to keep state =================
 static bool is_unidirectional = false;
 static int segments_used = 0;
-static size_t grid = 5;
-static size_t size_grid = grid + 2;
+static size_t max_grid_index = 5;
+static size_t num_switches = max_grid_index + 2;
 static size_t segments_per_channel = 4;
 
 static int max_x;
@@ -48,7 +48,6 @@ char* circuit_file;
 
 // Used as markers for the visited array
 const int TARGET = 999999;
-const int ORIGIN = 0;
 const int UNAVAILABLE = 888888;
 
 class Coord {
@@ -380,13 +379,13 @@ void draw_switchbox() {
     t_bound_box switchbox;
     t_point next_point;
 
-    for(size_t j = 0; j < size_grid; ++j) {
+    for(size_t j = 0; j < num_switches; ++j) {
 
         // move up to draw another row
         next_point = start_point + t_point(0, j * 2 * square_width);
         switchbox = t_bound_box(next_point, square_width, square_width);
 
-        for(size_t i = 0; i < size_grid; ++i) {
+        for(size_t i = 0; i < num_switches; ++i) {
             setcolor(color_switchbox);
             // draw the box
             fillrect(switchbox);
@@ -405,9 +404,9 @@ void draw_segments() {
     setlinestyle(SOLID);
     setcolor(BLUE);
 
-    for (size_t j = 0; j < size_grid; ++j) {
+    for (size_t j = 0; j < num_switches; ++j) {
         next_point = segment_start_point_horizontal + t_point(0, j * 2 * square_width);
-        for (size_t i = 0; i < size_grid - 1; ++i) {
+        for (size_t i = 0; i < num_switches - 1; ++i) {
 
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 double width_per_segment = (double)square_width / (segments_per_channel + 1);
@@ -424,9 +423,9 @@ void draw_segments() {
     const t_point segment_start_point_vertical = start_point + t_point(0, square_width);
 
     // draw the vertical segments
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
         next_point = segment_start_point_vertical + t_point(0, j * 2 * square_width);
-        for (size_t i = 0; i < size_grid; ++i) {
+        for (size_t i = 0; i < num_switches; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 double width_per_segment = (double)square_width / (segments_per_channel + 1);
                 double spacing = width_per_segment * segment;
@@ -447,11 +446,11 @@ void draw_logicbox() {
     const size_t half_width = square_width / 2;
     t_point square_logicbox;
 
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
 
         square_logicbox = t_point(0, j * 2 * square_width) + logic_start_point;
 
-        for (size_t i = 0; i < size_grid - 1; ++i) {
+        for (size_t i = 0; i < num_switches - 1; ++i) {
             // draw the logicbox
             drawrect(square_logicbox, t_point(square_width, square_width) + square_logicbox);
 
@@ -473,11 +472,11 @@ void draw_logicbox_pins() {
     // draw pin 1
     t_point initial_point = start_point + t_point(square_width, square_width);
     t_point current_point;
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
 
         current_point = t_point(0, j * 2 * square_width) + initial_point;
 
-        for(size_t i = 0; i < size_grid - 1; ++i) {
+        for(size_t i = 0; i < num_switches - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 spacing = width_per_segment * segment;
                 drawline(current_point.x + (square_width / 4),
@@ -498,11 +497,11 @@ void draw_logicbox_pins() {
 
     // draw pin 2
     initial_point = start_point + t_point(2 * square_width, 2 * square_width);
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
 
         current_point = t_point(0, j * 2 * square_width) + initial_point;
 
-        for(size_t i = 0; i < size_grid - 1; ++i) {
+        for(size_t i = 0; i < num_switches - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 spacing = width_per_segment * segment;
                 drawline(current_point.x,
@@ -523,9 +522,9 @@ void draw_logicbox_pins() {
 
     // draw pin 3
     initial_point = start_point + t_point(2 * square_width, 2 * square_width);
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
-        for(size_t i = 0; i < size_grid - 1; ++i) {
+        for(size_t i = 0; i < num_switches - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 spacing = width_per_segment * segment;
                 drawline(current_point.x - (square_width / 4),
@@ -545,9 +544,9 @@ void draw_logicbox_pins() {
 
     // draw pin 4
     initial_point = start_point + t_point(square_width, square_width);
-    for (size_t j = 0; j < size_grid - 1; ++j) {
+    for (size_t j = 0; j < num_switches - 1; ++j) {
         current_point = t_point(0, j * 2 * square_width) + initial_point;
-        for(size_t i = 0; i < size_grid - 1; ++i) {
+        for(size_t i = 0; i < num_switches - 1; ++i) {
             for (size_t segment = 1; segment <= segments_per_channel; ++segment) {
                 spacing = width_per_segment * segment;
                 drawline(current_point.x,
@@ -703,14 +702,16 @@ void drawscreen(void) {
     segments_used = 0;
     int logic_orig_x, logic_orig_y, logic_orig_pin;
     int logic_target_x, logic_target_y, logic_target_pin;
+    int grid_dim;
 
     ifstream input(circuit_file);
-    input >> grid;
-    size_grid = grid + 2;
+    input >> grid_dim;
+    max_grid_index = grid_dim - 1;
+    num_switches = max_grid_index + 2;
 
     input >> segments_per_channel;
-    max_y = (grid * 2) + 2;
-    max_x = (grid * 2) + 2;
+    max_y = (max_grid_index * 2) + 2;
+    max_x = (max_grid_index * 2) + 2;
 
     initialize_array(&visited);
 
@@ -755,15 +756,17 @@ void drawscreen_decreasing_w(void) {
     int logic_target_x, logic_target_y, logic_target_pin;
 
     int temp;
+    int grid_dim;
 
     while(true) {
         ifstream input(circuit_file);
-        input >> grid;
-        size_grid = grid + 2;
+        input >> grid_dim;
+        max_grid_index = grid_dim - 1;
+        num_switches = max_grid_index + 2;
 
         input >> temp;
-        max_y = (grid * 2) + 2;
-        max_x = (grid * 2) + 2;
+        max_y = (max_grid_index * 2) + 2;
+        max_x = (max_grid_index * 2) + 2;
         segments_used = 0;
         initialize_array(&visited);
 
