@@ -301,9 +301,14 @@ void mark_segments_with(vector<Coord*> *vec, int num) {
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 2) {
+    if (argc < 2) {
         cout << "You need to provide a circuit file" << endl;
         exit(1);
+    }
+
+    if (argc == 3) {
+        is_unidirectional = true;
+        cout << "Drawing for unidirectional switches" << endl;
     }
 
     circuit_file = argv[1];
