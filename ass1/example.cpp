@@ -13,6 +13,7 @@ using namespace std;
 
 // Callbacks for event-driven window handling.
 void drawscreen(void);
+void drawscreen_decreasing_w(void);
 void draw_segment_line(int x, int y, int segment);
 void draw_logicbox();
 void draw_logicbox_pins();
@@ -42,7 +43,7 @@ static int max_y;
 static int ***visited;
 
 static const t_point start_point = t_point(0, 0);
-static const float square_width = 40; // must be a power of 4
+static const float square_width = 100; // must be a power of 4
 char* circuit_file;
 
 // Used as markers for the visited array
@@ -233,7 +234,7 @@ void segments_connected_to_logicbox_coord(int x, int y, int pin, vector<Coord*>*
 
     // add the segments to the vector
     for (size_t i = 0; i < segments_per_channel; ++i) {
-        if (visited[segment_coord_x][segment_coord_y][i] == 0) {
+        if (visited[segment_coord_x][segment_coord_y][i] != UNAVAILABLE) {
             vec->push_back(new Coord(segment_coord_x, segment_coord_y, i));
         }
     }
@@ -285,11 +286,17 @@ bool is_target(Coord* coord) {
     return visited[x][y][segment] == TARGET;
 }
 
-void mark_as_visited(Coord* coord, int num) {
+void mark_with(Coord* coord, int num) {
     int x = coord->x;
     int y = coord->y;
     int segment = coord->segment;
     visited[x][y][segment] = num;
+}
+
+void mark_segments_with(vector<Coord*> *vec, int num) {
+    for (size_t i = 0; i < vec->size(); i++) {
+        mark_with((*vec)[i], num);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -321,6 +328,11 @@ int main(int argc, char* argv[]) {
     // the user presses the proceed button.
 
     event_loop(NULL, NULL, NULL, drawscreen);
+    update_message("test_me");
+    init_graphics("CAD Assignment 1", WHITE);
+    set_visible_world(initial_coords);
+    drawscreen_decreasing_w();
+    event_loop(NULL, NULL, NULL, drawscreen_decreasing_w);
     close_graphics ();
     std::cout << "Graphics closed down.\n";
 
@@ -549,92 +561,10 @@ void draw_logicbox_pins() {
     }
 }
 
-void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
-                   int logic_target_x, int logic_target_y, int logic_target_pin) {
-    // =========================================================================
-    // Setup
-    // =========================================================================
-    // setup the global variables
-
-
-    queue<Coord*> to_process_queue;
-
-    vector<Coord*> vec_segments;
-    segments_connected_to_logicbox_coord(logic_orig_x,
-                                         logic_orig_y,
-                                         logic_orig_pin,
-                                         &vec_segments);
-
-    // initial pins
-    for (size_t i = 0; i < vec_segments.size(); i++) {
-    //    cout << vec_segments[i]->x << " " << vec_segments[i]->y << " " << vec_segments[i]->segment << endl;
-        mark_as_visited(vec_segments[i], 1);
-    }
-    add_content_vector_to_queue(&vec_segments, &to_process_queue);
-
-    // now let's add the target
-    vec_segments.clear();
-    segments_connected_to_logicbox_coord(logic_target_x,
-                                         logic_target_y,
-                                         logic_target_pin,
-                                         &vec_segments);
-    // target pins
-    for (size_t i = 0; i < vec_segments.size(); i++) {
-        /*
-         * cout << vec_segments[i]->x << " " << vec_segments[i]->y << " " << vec_segments[i]->segment << endl;
-         */
-        mark_as_visited(vec_segments[i], TARGET);
-    }
-    /*
-     * cout << "-----" << endl;
-     */
-    vec_segments.clear();
-
-    int count = 1;
-
-    bool found = false;
-    Coord* found_coord = nullptr;
-    Coord* target_coord = nullptr;
-    while(!to_process_queue.empty()) {
-        count++;
-        int size_of_queue = to_process_queue.size();
-        for(int i = 0; i < size_of_queue; i++) {
-            Coord* haha = to_process_queue.front();
-
-            to_process_queue.pop();
-            block_connectivity(haha, &vec_segments, is_unidirectional);
-
-            for (size_t j = 0; j < vec_segments.size(); j++) {
-                Coord* hoho = vec_segments[j];
-                if (is_target(hoho)) {
-                    found = true;
-                    found_coord = haha;
-                    target_coord = hoho;
-                    break;
-                } else if (is_already_visited(hoho)) {
-                    continue;
-                } else {
-                    to_process_queue.push(hoho);
-                    mark_as_visited(hoho, count);
-                }
-            }
-            if (found) {
-                break;
-            }
-            delete haha;
-        }
-        if (found) {
-            break;
-        }
-    }
-
-    if (found == false) {
-        cout << "Did not find " << logic_orig_x << logic_orig_y << logic_orig_pin << endl;
-    }
-
+void traceback(Coord* found_coord, Coord* target_coord) {
     stack<Coord*> soln;
+    vector<Coord*> vec_segments;
 
-    // traceback
     if (target_coord != nullptr) {
         soln.push(target_coord);
     }
@@ -648,8 +578,10 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
         }
 
         block_connectivity_reverse(found_coord, &vec_segments, is_unidirectional);
+
         for (size_t i = 0; i < vec_segments.size(); i++) {
             Coord* lower = vec_segments[i];
+
             if (visited[lower->x][lower->y][lower->segment] == count_found_coord - 1) {
                 found_coord = lower;
                 break;
@@ -661,13 +593,92 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
         Coord* path = soln.top();
         soln.pop();
         visited[path->x][path->y][path->segment] = UNAVAILABLE;
-        // cout << path->x << " " << path->y << " " << path->segment << endl;
         draw_segment_line(path->x, path->y, path->segment);
         segments_used++;
     }
-    /*
-     * cout << "-----" << endl;
-     */
+}
+
+bool run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
+                   int logic_target_x, int logic_target_y, int logic_target_pin) {
+
+    bool found_all = true;
+    queue<Coord*> to_process_queue;
+
+    vector<Coord*> vec_segments;
+    segments_connected_to_logicbox_coord(logic_orig_x, logic_orig_y, logic_orig_pin, &vec_segments);
+
+    // initial pins
+    mark_segments_with(&vec_segments, 1);
+
+    add_content_vector_to_queue(&vec_segments, &to_process_queue);
+
+    // now let's add the target
+    vec_segments.clear();
+    segments_connected_to_logicbox_coord(logic_target_x, logic_target_y, logic_target_pin, &vec_segments);
+
+    bool found = false;
+    // handle case when target and origin pins are already connected together
+    for (size_t i = 0; i < vec_segments.size(); i++) {
+        int x = vec_segments[i]->x;
+        int y = vec_segments[i]->y;
+        int segment = vec_segments[i]->segment;
+        if (visited[x][y][segment] == 1) {
+            found = true;
+            segments_used++;
+            visited[x][y][segment] = UNAVAILABLE;
+            draw_segment_line(x, y, segment);
+            break;
+        }
+    }
+    if(found) return true;
+
+    // target pins
+    mark_segments_with(&vec_segments, TARGET);
+
+    vec_segments.clear();
+
+    int count = 1;
+
+
+    Coord* found_coord = nullptr;
+    Coord* target_coord = nullptr;
+
+    while(!to_process_queue.empty()) {
+        count++;
+        int size_of_queue = to_process_queue.size();
+        for(int i = 0; i < size_of_queue; i++) {
+            Coord* item = to_process_queue.front();
+            to_process_queue.pop();
+
+            block_connectivity(item, &vec_segments, is_unidirectional);
+
+            for (size_t j = 0; j < vec_segments.size(); j++) {
+                Coord* segment = vec_segments[j];
+                if (is_target(segment)) {
+                    found = true;
+                    found_coord = item;
+                    target_coord = segment;
+                    break;
+                } else if (is_already_visited(segment)) {
+                    continue;
+                } else {
+                    to_process_queue.push(segment);
+                    mark_with(segment, count);
+                }
+            }
+            if (found) break;
+            delete item;
+        }
+        if (found) break;
+    }
+
+    if (found == false) {
+        found_all = false;
+        cout << "Did not find " << logic_orig_x << " " << logic_orig_y << " " << logic_orig_pin << endl;
+        cout << "With target " <<  logic_target_x << " " << logic_target_y << " " << logic_target_pin << endl;
+    } else {
+        traceback(found_coord, target_coord);
+    }
 
     // cleanup
     for (int i = 0; i <= max_x; i++) {
@@ -679,11 +690,7 @@ void run_algorithm(int logic_orig_x, int logic_orig_y, int logic_orig_pin,
             }
         }
     }
-    /*
-     * cout << "====" << endl;
-     * cout << visited[4][1][0] << endl;
-     * cout << "====" << endl;
-     */
+    return found_all;
 }
 
 void drawscreen(void) {
@@ -700,7 +707,6 @@ void drawscreen(void) {
     max_y = (grid * 2) + 2;
     max_x = (grid * 2) + 2;
 
-
     initialize_array(&visited);
 
     set_draw_mode(DRAW_NORMAL);
@@ -711,47 +717,102 @@ void drawscreen(void) {
     setlinewidth(1);
     setcolor (BLACK);
 
-
     draw_switchbox();
     draw_segments();
     draw_logicbox();
     draw_logicbox_pins();
 
-    color_types color_indicies[] = {
-        BLACK,
-        DARKGREY,
-        RED,
-        ORANGE,
-        YELLOW,
-        GREEN,
-        CYAN,
-        BLUE,
-        PURPLE,
-        BISQUE,
-        CORAL,
-        FIREBRICK,
-        LIMEGREEN,
-        THISTLE,
-        PLUM,
-        CYAN,
-        DARKGREEN,
-        MAGENTA
-    };
+    color_types color_indicies[] = { BLACK, DARKGREY, RED, ORANGE, YELLOW, GREEN,
+        CYAN, BLUE, PURPLE, BISQUE, CORAL, FIREBRICK, LIMEGREEN, THISTLE, PLUM,
+        DARKGREEN, MAGENTA};
 
     int count = 0;
 
     while (input >> logic_orig_x >> logic_orig_y >> logic_orig_pin
             >> logic_target_x >> logic_target_y >> logic_target_pin) {
 
+        // end of file
         if (logic_orig_x == -1) break;
 
-        setcolor(color_indicies[count % 18]);
+        // alternate colors when drawing segments
+        setcolor(color_indicies[count % 17]);
         count++;
         run_algorithm(logic_orig_x, logic_orig_y, logic_orig_pin,
                       logic_target_x, logic_target_y, logic_target_pin);
     }
 
     cout << "Segments Used: " << segments_used << endl;
+}
+
+void drawscreen_decreasing_w(void) {
+
+    int logic_orig_x, logic_orig_y, logic_orig_pin;
+    int logic_target_x, logic_target_y, logic_target_pin;
+
+    int temp;
+
+    while(true) {
+        ifstream input(circuit_file);
+        input >> grid;
+        size_grid = grid + 2;
+
+        input >> temp;
+        max_y = (grid * 2) + 2;
+        max_x = (grid * 2) + 2;
+        segments_used = 0;
+        initialize_array(&visited);
+
+        set_draw_mode(DRAW_NORMAL);
+        clearscreen();
+
+        setfontsize(10);
+        setlinestyle(SOLID);
+        setlinewidth(1);
+        setcolor (BLACK);
+
+        draw_switchbox();
+        draw_segments();
+        draw_logicbox();
+        draw_logicbox_pins();
+
+        color_types color_indicies[] = { BLACK, DARKGREY, RED, ORANGE, YELLOW, GREEN,
+            CYAN, BLUE, PURPLE, BISQUE, CORAL, FIREBRICK, LIMEGREEN, THISTLE, PLUM,
+            DARKGREEN, MAGENTA};
+
+
+        bool can_route;
+        int count = 0;
+        cout << endl;
+        cout << "Attempting with " << segments_per_channel << endl;
+
+        while (input >> logic_orig_x >> logic_orig_y >> logic_orig_pin
+                >> logic_target_x >> logic_target_y >> logic_target_pin) {
+
+            // end of file
+            if (logic_orig_x == -1) break;
+
+            // alternate colors when drawing segments
+            setcolor(color_indicies[count % 17]);
+            count++;
+            can_route = run_algorithm(logic_orig_x, logic_orig_y, logic_orig_pin,
+                                      logic_target_x, logic_target_y, logic_target_pin);
+
+            if (can_route == false) {
+                cout << endl;
+                cout << "Can't route with " << segments_per_channel << "!" << endl;
+                break;
+            }
+        }
+        cout << "Segments Used: " << segments_used << endl;
+
+        if (can_route == false) {
+            cout << "Minimum w is: " << segments_per_channel + 2 << endl;
+            break;
+        }
+        segments_per_channel = segments_per_channel - 2;
+        cleanup_array(&visited);
+    }
+
 }
 
 void delay(long milliseconds) {
