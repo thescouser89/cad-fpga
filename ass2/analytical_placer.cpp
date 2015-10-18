@@ -4,84 +4,65 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include "analytical_placer.h"
 
 using namespace std;
 
-class Block {
-    public:
-    int block_num;
-    bool fixed;
-    int x;
-    int y;
-    set<int> nets;
+Block::Block(int block_num): block_num(block_num) {
+    fixed = false;
+}
 
-    public:
-    Block(int block_num): block_num(block_num) {
-        fixed = false;
+void Block::set_coord(double _x, double _y) {
+    x = _x;
+    y = _y;
+}
+
+void Block::add_net(int net) {
+    nets.insert(net);
+}
+
+void Block::cout_data() {
+    cout << "Block: " << block_num << ", Fixed?: " << fixed << " Nets: ";
+    set <int>::iterator it;
+    for (it = nets.begin(); it != nets.end(); it++) {
+        cout << *it << ", ";
     }
+    cout << "x: " << x << " y: " << y << endl;
+}
 
-    void set_coord(int _x, int _y) {
-        x = _x;
-        y = _y;
+double Block::own_weight(map<int, double> *net_weight) {
+    double weight = 0;
+    set <int>::iterator it;
+    for (it = nets.begin(); it != nets.end(); it++) {
+        weight += (*net_weight)[*it];
     }
+    return weight;
+}
 
-    void add_net(int net) {
-        nets.insert(net);
+double Block::weight(map<int, double> *net_weight, Block *other) {
+    double weight = 0;
+    set<int> intersect_net;
+    find_intersect(other, &intersect_net);
+
+    set <int>::iterator it;
+    for (it = intersect_net.begin(); it != intersect_net.end(); it++) {
+        weight += (*net_weight)[*it];
     }
+    return weight;
+}
 
-    void cout_data() {
-        cout << "Block: " << block_num << ", Fixed?: " << fixed << " Nets: ";
-        set <int>::iterator it;
-        for (it = nets.begin(); it != nets.end(); it++) {
-            cout << *it << ", ";
-        }
-        cout << "x: " << x << " y: " << y << endl;
-    }
+bool Block::is_connected(Block *other) {
+    set<int> intersect;
+    find_intersect(other, &intersect);
+    return !intersect.empty();
+}
 
-    double own_weight(map<int, double> *net_weight) {
-        double weight = 0;
-        set <int>::iterator it;
-        for (it = nets.begin(); it != nets.end(); it++) {
-            weight += (*net_weight)[*it];
-        }
-        return weight;
-    }
+void Block::find_intersect(Block *other, set<int> *intersect) {
+    set<int> *other_nets = &(other->nets);
 
-    double weight(map<int, double> *net_weight, Block *other) {
-        double weight = 0;
-        set<int> intersect_net;
-        find_intersect(other, &intersect_net);
-
-        set <int>::iterator it;
-        for (it = intersect_net.begin(); it != intersect_net.end(); it++) {
-            weight += (*net_weight)[*it];
-        }
-        return weight;
-
-    }
-
-    bool is_connected(Block *other) {
-        set<int> intersect;
-        find_intersect(other, &intersect);
-        return !intersect.empty();
-    }
-
-    private:
-    void find_intersect(Block *other, set<int> *intersect) {
-        set<int> *other_nets = &(other->nets);
-
-        set_intersection(nets.begin(), nets.end(),other_nets->begin(),other_nets->end(),
-                         std::inserter(*intersect,intersect->begin()));
-    }
-};
-
-// -----------------------------------------------------------------------------
-// function definitions
-// -----------------------------------------------------------------------------
-void parse_input_file(ifstream *, map<int, int>*, map<int, Block*> *, map<int, set<Block*>*> *);
-void parse_block_net_connections(ifstream *, map<int, double>*, map<int, Block*>*, map<int, set<Block*>*> *);
-void parse_fixed_block_positions(ifstream *, map<int, Block*>*);
-void calculate_actual_weight(map<int, int>*, map<int, double>*);
+    set_intersection(nets.begin(), nets.end(),other_nets->begin(),other_nets->end(),
+                     std::inserter(*intersect,intersect->begin()));
+}
 
 /**
  * Parse the input file and extract the block/net definitions and the location
@@ -276,6 +257,7 @@ void generate_matrix(map<int, double> *net_weight,
     }
 }
 
+/*
 int main(int argc, char * argv[]) {
     map<int, double> net_weight;
     map<int, Block*> block_num_to_block;
@@ -295,3 +277,4 @@ int main(int argc, char * argv[]) {
 
     generate_matrix(&net_weight, &block_num_to_block);
 }
+*/
