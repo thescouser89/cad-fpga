@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <limits>
 #include "analytical_placer.h"
 
 using namespace std;
@@ -255,6 +256,45 @@ void generate_matrix(map<int, double> *net_weight,
         }
         cout << " | (" << x_position << ", " << y_position << ")" << endl;
     }
+}
+
+double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {
+
+    map<int, set<Block*>*>::iterator it;
+
+    double total_hpwl = 0;
+
+    cout << "################################################" << endl;
+    for (it = net_to_block->begin(); it != net_to_block->end(); it++) {
+        int net = it->first;
+        set<Block*> *block_set = it->second;
+
+        double min_x = std::numeric_limits<double>::max();
+        double min_y = std::numeric_limits<double>::max();
+        double max_x = std::numeric_limits<double>::min();
+        double max_y = std::numeric_limits<double>::min();
+
+        set<Block*>::iterator it2;
+        for (it2 = block_set->begin(); it2 != block_set->end(); it2++) {
+            Block* blk = *it2;
+            if (blk->x < min_x) min_x = blk->x;
+            if (blk->y < min_y) min_y = blk->y;
+            if (blk->x > max_x) max_x = blk->x;
+            if (blk->y > max_y) max_y = blk->y;
+        }
+
+        double hpwl = max_x - min_x + max_y - min_y;
+        total_hpwl += hpwl;
+
+        cout << "Net: " << net;
+        cout << ":: min: (" << min_x << ", " << min_y << ") ";
+        cout << " max: (" << max_x << ", " << max_y << ") ";
+        cout << ":: hpwl: " << hpwl << endl;
+    }
+    cout << "=== Total hpwl: " << total_hpwl << " ===" << endl;
+    cout << "################################################" << endl;
+
+    return total_hpwl;
 }
 
 /*

@@ -1,5 +1,7 @@
 #include <set>
 #include <map>
+#ifndef ANALYTICAL_PLACER_H
+#define ANALYTICAL_PLACER_H
 
 using namespace std;
 
@@ -38,3 +40,6 @@ void generate_matrix(map<int, double> *, map<int, Block*> *);
 void iterate_block(map<int, Block*>* block_num_to_block);
 void iterate_net_to_block(map<int, set<Block *>*> *net_to_block);
 void iterate_net_weight(map<int, double>* net_weight);
+double calculate_hpwl(map<int, set<Block*>*> *net_to_block);
+
+#endif /* ANALYTICAL_PLACER_H */

@@ -31,6 +31,23 @@ int main(int argc, char* argv[]) {
     ifstream myfile(argv[1]);
     parse_input_file(&myfile, &net_weight, &block_num_to_block, &net_to_block);
 
+    // TODO: remove after debugging
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
+        Block *from = it->second;
+
+        if (!from->fixed) {
+            from->x = rand() % 100;
+            from->y = rand() % 100;
+        }
+    }
+
+    iterate_block(&block_num_to_block);
+    iterate_net_to_block(&net_to_block);
+    iterate_net_weight(&net_weight);
+    calculate_hpwl(&net_to_block);
+
+
     std::cout << "About to start graphics.\n";
 
     /**************** initialize display **********************/
@@ -71,8 +88,10 @@ inline double to_draw_coord(double val) {
 void draw_block(Block* blk) {
     double radius = radius_block;
     if (blk->fixed) {
-        setcolor(BLUE);
+        setcolor(GREEN);
         radius += 1;
+    } else {
+        setcolor(BLUE);
     }
     fillarc(to_draw_coord(blk->x), to_draw_coord(blk->y), radius_block, 0, 360);
     drawtext(to_draw_coord(blk->x) + spacing, to_draw_coord(blk->y) + spacing,
@@ -95,16 +114,6 @@ void draw_connection(Block* from, Block* to) {
 
 void draw_block_connections() {
     map<int, Block*>::iterator it;
-
-    // TODO: remove after debugging
-    for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
-        Block *from = it->second;
-
-        if (!from->fixed) {
-            from->x = rand() % 100;
-            from->y = rand() % 100;
-        }
-    }
 
     map<int, Block*>::iterator it2;
     for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
