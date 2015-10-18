@@ -38,10 +38,41 @@ class Block {
         cout << "x: " << x << " y: " << y << endl;
     }
 
-    // TODO
-    // implement double own_weight();
-    // implement double weight(Block* other);
-    // implement bool is_connected(Block* other);
+    double own_weight(map<int, double> *net_weight) {
+        double weight = 0;
+        set <int>::iterator it;
+        for (it = nets.begin(); it != nets.end(); it++) {
+            weight += (*net_weight)[*it];
+        }
+        return weight;
+    }
+
+    double weight(map<int, double> *net_weight, Block *other) {
+        double weight = 0;
+        set<int> intersect_net;
+        find_intersect(other, &intersect_net);
+
+        set <int>::iterator it;
+        for (it = intersect_net.begin(); it != intersect_net.end(); it++) {
+            weight += (*net_weight)[*it];
+        }
+        return weight;
+
+    }
+
+    bool is_connected(Block *other) {
+        set<int> intersect;
+        find_intersect(other, &intersect);
+        return !intersect.empty();
+    }
+
+    private:
+    void find_intersect(Block *other, set<int> *intersect) {
+        set<int> *other_nets = &(other->nets);
+
+        set_intersection(nets.begin(), nets.end(),other_nets->begin(),other_nets->end(),
+                         std::inserter(*intersect,intersect->begin()));
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -207,6 +238,44 @@ void iterate_net_weight(map<int, double>* net_weight) {
     cout << "===============================" << endl;
 }
 
+void generate_matrix(map<int, double> *net_weight,
+                     map<int, Block*> *block_num_to_block) {
+
+    set<Block*> not_fixed;
+    set<Block*> fixed;
+
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block->begin(); it != block_num_to_block->end(); it++) {
+        Block *temp = it->second;
+        if (temp->fixed) {
+            fixed.insert(temp);
+        } else {
+            not_fixed.insert(temp);
+        }
+    }
+
+    set<Block*>::iterator it2;
+    set<Block*>::iterator it3;
+    for (it2 = not_fixed.begin(); it2 != not_fixed.end(); it2++) {
+        for (it3 = not_fixed.begin(); it3 != not_fixed.end(); it3++) {
+
+            if (it2 == it3) {
+                cout << (*it2)->own_weight(net_weight) << " ";
+            } else {
+                cout << "-" << (*it2)->weight(net_weight, *it3) << " ";
+            }
+        }
+        set<Block*>::iterator fixed_iter;
+        double x_position = 0;
+        double y_position = 0;
+        for (fixed_iter = fixed.begin(); fixed_iter != fixed.end(); fixed_iter++) {
+            x_position += (*fixed_iter)->weight(net_weight, *it2) * (*fixed_iter)->x;
+            y_position += (*fixed_iter)->weight(net_weight, *it2) * (*fixed_iter)->y;
+        }
+        cout << " | (" << x_position << ", " << y_position << ")" << endl;
+    }
+}
+
 int main(int argc, char * argv[]) {
     map<int, double> net_weight;
     map<int, Block*> block_num_to_block;
@@ -223,4 +292,6 @@ int main(int argc, char * argv[]) {
     iterate_block(&block_num_to_block);
     iterate_net_weight(&net_weight);
     iterate_net_to_block(&net_to_block);
+
+    generate_matrix(&net_weight, &block_num_to_block);
 }
