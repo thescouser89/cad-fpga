@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <list>
 #include <limits>
 #include "analytical_placer.h"
 
@@ -238,15 +239,44 @@ void generate_matrix(map<int, double> *net_weight,
 
     set<Block*>::iterator it2;
     set<Block*>::iterator it3;
+
+    list<int> Ap;
+    list<int> Ai;
+    list<double> Ax;
+    list<double> x_solns;
+    list<double> y_solns;
+    int count = 0;
+    int col_index = 0;
+    size_t n = not_fixed.size();
+    // x
     for (it2 = not_fixed.begin(); it2 != not_fixed.end(); it2++) {
+        // y
+        Ap.push_back(count);
+        int row_index = 0;
         for (it3 = not_fixed.begin(); it3 != not_fixed.end(); it3++) {
+            // so we go down first, then move to the right
 
             if (it2 == it3) {
-                cout << (*it2)->own_weight(net_weight) << " ";
+                double w = (*it2)->own_weight(net_weight);
+                cout << w << " ";
+                if (w != 0) {
+                    Ax.push_back(w);
+                    Ai.push_back(row_index);
+                    count++;
+                }
             } else {
-                cout << "-" << (*it2)->weight(net_weight, *it3) << " ";
+                double w = (*it2)->weight(net_weight, *it3);
+                cout << -w << " ";
+                if (w != 0) {
+                    Ax.push_back(-w);
+                    Ai.push_back(row_index);
+                    count++;
+                }
             }
+            row_index++;
         }
+
+        // find the right hand-side of the matrix, "b"
         set<Block*>::iterator fixed_iter;
         double x_position = 0;
         double y_position = 0;
@@ -254,8 +284,55 @@ void generate_matrix(map<int, double> *net_weight,
             x_position += (*fixed_iter)->weight(net_weight, *it2) * (*fixed_iter)->x;
             y_position += (*fixed_iter)->weight(net_weight, *it2) * (*fixed_iter)->y;
         }
+        x_solns.push_back(x_position);
+        y_solns.push_back(y_position);
         cout << " | (" << x_position << ", " << y_position << ")" << endl;
+
+        col_index++;
     }
+    Ap.push_back(count);
+
+    list<int>::iterator i;
+
+    cout << endl;
+    cout << "n: " << n << endl;
+    cout << endl;
+
+    cout << "Ap" << endl;
+    for (i = Ap.begin(); i != Ap.end(); i++) {
+        cout << *i << " ";
+    }
+    cout << endl;
+    cout << endl;
+
+    cout << "Ai" << endl;
+    for (i = Ai.begin(); i != Ai.end(); i++) {
+        cout << *i << " ";
+    }
+    cout << endl;
+    cout << endl;
+
+    cout << "Ax" << endl;
+    list<double>::iterator i2;
+    for (i2 = Ax.begin(); i2 != Ax.end(); i2++) {
+        cout << *i2 << " ";
+    }
+    cout << endl;
+    cout << endl;
+
+    cout << "x:" << endl;
+    for (i2 = x_solns.begin(); i2 != x_solns.end(); i2++) {
+        cout << *i2 << " ";
+    }
+    cout << endl;
+    cout << endl;
+
+    cout << "y:" << endl;
+    for (i2 = y_solns.begin(); i2 != y_solns.end(); i2++) {
+        cout << *i2 << " ";
+    }
+    cout << endl;
+    cout << endl;
 }
 
 double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {

@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     iterate_net_to_block(&net_to_block);
     iterate_net_weight(&net_weight);
     calculate_hpwl(&net_to_block);
-
+    generate_matrix(&net_weight, &block_num_to_block);
 
     std::cout << "About to start graphics.\n";
 
