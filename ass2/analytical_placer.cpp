@@ -6,6 +6,7 @@
 #include <set>
 #include <list>
 #include <limits>
+#include <queue>
 #include "analytical_placer.h"
 
 using namespace std;
@@ -372,6 +373,133 @@ double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {
     cout << "################################################" << endl;
 
     return total_hpwl;
+}
+
+class Quadrant {
+    public:
+    list<Block*> *all_blocks;
+    double x_begin, y_begin;
+    double x_end, y_end;
+
+    Quadrant(double x_begin, double y_begin,
+             double x_end, double y_end,
+             list<Block*> *all_blocks):
+             x_begin(x_begin), y_begin(y_begin),
+             x_end(x_end), y_end(y_end),
+            all_blocks(all_blocks) {}
+
+    double y_higher_left() {
+        return y_begin + (double) 3 * (y_end - y_begin) / 4;
+    }
+
+    double y_higher_right() {
+        return y_begin + (double) 3 * (y_end - y_begin) / 4;
+    }
+
+    double y_lower_left() {
+        return y_begin + (double) (y_end - y_begin) / 4;
+    }
+
+    double y_lower_right() {
+        return y_begin + (double) (y_end - y_begin) / 4;
+    }
+
+    double x_higher_left() {
+        return x_begin + (double) (x_end - x_begin) / 4;
+    }
+
+    double x_higher_right() {
+        return x_begin + (double) 3 * (x_end - x_begin) / 4;
+
+    }
+
+    double x_lower_left() {
+        return x_begin + (double) (x_end - x_begin) / 4;
+    }
+
+    double x_lower_right() {
+        return x_begin + (double) 3 * (x_end - x_begin) / 4;
+
+    }
+
+    double x_center() {
+        return x_begin + (double) (x_end - x_begin) / 2;
+    }
+
+    double y_center() {
+        return y_begin + (double) (y_end - y_begin) / 2;
+
+    }
+
+    void quadrant_process(queue<Quadrant*> *quadrant_queue) {
+
+        // *********************************************************************
+        // TODO: populate queue
+        // *********************************************************************
+        // TODO: initialize that list
+        list<Block*> *lower_left_quadrant_blocks;
+        list<Block*> *lower_right_quadrant_blocks;
+        list<Block*> *higher_left_quadrant_blocks;
+        list<Block*> *higher_right_quadrant_blocks;
+
+        // lower left
+        quadrant_queue->push(new Quadrant(x_begin, y_begin, x_center(), y_center(), lower_left_quadrant_blocks));
+
+        // lower right
+        quadrant_queue->push(new Quadrant(x_center(), y_begin, x_end, y_center(), lower_right_quadrant_blocks));
+
+        // upper left
+        quadrant_queue->push(new Quadrant(x_begin, y_center(), x_center(), y_end, higher_left_quadrant_blocks));
+
+        // upper right
+        quadrant_queue->push(new Quadrant(x_center(), y_center(), x_end, y_end, higher_right_quadrant_blocks));
+    }
+
+    // TODO: implement this
+    void partition() {}
+};
+
+// overlap_removal
+// initially get a new Temp, with all lists empty, and with coordinates set.
+// the Temp gets processed, where the lists get populated, and 4 new Temps are
+// produced and added to a queue
+//
+// if it passes the condition, return
+// else, process the entire queue, then evaluate the condition again
+
+
+void overlap_removal(map<int, double>* net_weight,
+                     map<int, Block*> *block_num_to_block,
+                     map<int, set<Block*>*> *net_to_block,
+                     Quadrant *q) {
+
+    queue<Quadrant*> q_queue;
+    q_queue.push(q);
+
+    while(true) {
+        size_t queue_len = q_queue.size();
+        for (int i = 0; i < queue_len; i++) {
+            Quadrant *to_process = q_queue.front();
+            q_queue.pop();
+
+            cout << to_process->x_center() << ", " << to_process->y_center();
+            cout << endl;
+            to_process->quadrant_process(&q_queue);
+        }
+            cout << endl;
+
+        // *********************************************************************
+        // TODO: evaluate if this is good enough
+        // if so, break from loop.
+        // *********************************************************************
+        cout << " >>> Processing\n" << endl;
+        break;
+    }
+}
+
+int main() {
+     overlap_removal(NULL, NULL, NULL,
+                     new Quadrant(0, 0, 100, 100, NULL));
 }
 
 /*
