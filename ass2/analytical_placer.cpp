@@ -34,13 +34,18 @@ void Block::cout_data() {
     cout << "x: " << x << " y: " << y << endl;
 }
 
-double Block::own_weight(map<int, double> *net_weight) {
-    double weight = 0;
-    set <int>::iterator it;
-    for (it = nets.begin(); it != nets.end(); it++) {
-        weight += (*net_weight)[*it];
+double Block::own_weight(map<int, double> *net_weight, map<int, Block*> *block_num_to_block) {
+    double own_weight = 0;
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block->begin(); it != block_num_to_block->end(); it++) {
+        Block *other = it->second;
+        if (other == this) {
+            continue;
+        }
+
+        own_weight += weight(net_weight, other);
     }
-    return weight;
+    return own_weight;
 }
 
 double Block::weight(map<int, double> *net_weight, Block *other) {
@@ -259,7 +264,7 @@ void generate_matrix(map<int, double> *net_weight,
             // so we go down first, then move to the right
 
             if (it2 == it3) {
-                double w = (*it2)->own_weight(net_weight);
+                double w = (*it2)->own_weight(net_weight, block_num_to_block);
                 cout << w << " ";
                 if (w != 0) {
                     Ax.push_back(w);

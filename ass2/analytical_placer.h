@@ -20,7 +20,7 @@ class Block {
 
     void cout_data();
 
-    double own_weight(map<int, double> *net_weight);
+    double own_weight(map<int, double> *net_weight, map<int, Block*> *block_nuum_to_block);
     double weight(map<int, double> *net_weight, Block *other);
     bool is_connected(Block *other);
 
