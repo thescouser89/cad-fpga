@@ -579,7 +579,7 @@ void overlap_removal(map<int, double>* net_weight,
 
     while(true) {
         size_t queue_len = q_queue.size();
-        for (int i = 0; i < queue_len; i++) {
+        for (size_t i = 0; i < queue_len; i++) {
             Quadrant *to_process = q_queue.front();
             q_queue.pop();
 
@@ -595,7 +595,7 @@ void overlap_removal(map<int, double>* net_weight,
         // *********************************************************************
         cout << " >>> Processing\n" << endl;
         size_t queue_queue_len = q_queue.size();
-        for (int i = 0; i < queue_queue_len; i++) {
+        for (size_t i = 0; i < queue_queue_len; i++) {
             Quadrant *to_process = q_queue.front();
             q_queue.pop();
             list<Block*> *blks = &(to_process->all_blocks);
