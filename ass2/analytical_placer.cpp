@@ -8,6 +8,7 @@
 #include <limits>
 #include <queue>
 #include "analytical_placer.h"
+#include "./Include/umfpack.h"
 
 using namespace std;
 
@@ -334,6 +335,37 @@ void generate_matrix(map<int, double> *net_weight,
     }
     cout << endl;
     cout << endl;
+
+    int *Ap_a = new int[Ap.size()];
+    int *Ai_a = new int[Ai.size()];
+    double *Ax_a = new double[Ax.size()];
+    double *x_solns_a = new double[x_solns.size()];
+    double *y_solns_a = new double[y_solns.size()];
+
+    double *x_values = new double[n];
+    double *y_values = new double[n];
+
+    copy(Ap.begin(), Ap.end(), Ap_a);
+    copy(Ai.begin(), Ai.end(), Ai_a);
+    copy(Ax.begin(), Ax.end(), Ax_a);
+    copy(x_solns.begin(), x_solns.end(), x_solns_a);
+    copy(y_solns.begin(), y_solns.end(), y_solns_a);
+
+    matrix_solver(n, Ap_a, Ai_a, Ax_a, x_solns_a, x_values);
+    matrix_solver(n, Ap_a, Ai_a, Ax_a, y_solns_a, y_values);
+    for (int i = 0; i < n; i++) {
+        cout << x_values[i] << ", " << y_values[i] << endl;
+    }
+}
+
+void matrix_solver(int n, int *Ap, int *Ai, double *Ax, double *b, double *x) {
+    double *null = (double *) NULL ;
+    void *Symbolic, *Numeric ;
+    (void) umfpack_di_symbolic (n, n, Ap, Ai, Ax, &Symbolic, null, null) ;
+    (void) umfpack_di_numeric (Ap, Ai, Ax, Symbolic, &Numeric, null, null) ;
+    umfpack_di_free_symbolic (&Symbolic) ;
+    (void) umfpack_di_solve (UMFPACK_A, Ap, Ai, Ax, x, b, Numeric, null, null) ;
+    umfpack_di_free_numeric (&Numeric) ;
 }
 
 double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {
