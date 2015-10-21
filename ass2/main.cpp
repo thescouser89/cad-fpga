@@ -7,7 +7,7 @@
 #include <fstream>
 #include "graphics.h"
 #include "analytical_placer.h"
-
+#include "./Include/umfpack.h"
 // Callbacks for event-driven window handling.
 void drawscreen (void);
 
