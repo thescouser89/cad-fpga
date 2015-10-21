@@ -25,13 +25,13 @@ PLATFORM = X11
 IDIR=./Include
 LDIR=./Lib_ecf
 LIB = $(LDIR)/libumfpack.a $(LDIR)/libamd.a $(LDIR)/libcholmod.a $(LDIR)/libcolamd.a $(LDIR)/libsuitesparseconfig.a
-FLAGS += -I$(IDIR) -I$(LDIR) -lrt
 
 HDR = graphics.h easygl_constants.h analytical_placer.h $(IDIR)/umfpack.h
 SRC = graphics.cpp analytical_placer.cpp main.cpp
 EXE = main
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
 FLAGS = -g -Wall -Wextra -pedantic -D$(PLATFORM) -std=c++11
+FLAGS += -I$(IDIR) -I$(LDIR) -lrt
 
 # Need to tell the linker to link to the libraries.
 # WIN32 links to all the win32 API libraries every time (no need for flags)
