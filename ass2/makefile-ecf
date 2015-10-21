@@ -22,7 +22,7 @@
 PLATFORM = X11
 #PLATFORM = WIN32
 #PLATFORM = NO_GRAPHICS
-IDIR=./Include_ecf
+IDIR=./Include
 LDIR=./Lib_ecf
 LIB = $(LDIR)/libumfpack.a $(LDIR)/libamd.a $(LDIR)/libcholmod.a $(LDIR)/libcolamd.a $(LDIR)/libsuitesparseconfig.a
 FLAGS += -I$(IDIR) -I$(LDIR) -lrt
