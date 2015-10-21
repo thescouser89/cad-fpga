@@ -22,8 +22,12 @@
 PLATFORM = X11
 #PLATFORM = WIN32
 #PLATFORM = NO_GRAPHICS
+IDIR=./Include
+LDIR=./Lib
+LIB = $(LDIR)/libumfpack.a $(LDIR)/libamd.a $(LDIR)/libcholmod.a $(LDIR)/libcolamd.a $(LDIR)/libsuitesparseconfig.a
+FLAGS += -I$(IDIR) -I$(LDIR) -lrt
 
-HDR = graphics.h easygl_constants.h analytical_placer.h
+HDR = graphics.h easygl_constants.h analytical_placer.h $(IDIR)/umfpack.h
 SRC = graphics.cpp analytical_placer.cpp main.cpp
 EXE = main
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
@@ -37,7 +41,7 @@ ifeq ($(PLATFORM),X11)
 endif
 
 $(EXE): graphics.o analytical_placer.o main.o
-	g++ $(FLAGS) $^ $(GRAPHICS_LIBS) -o $(EXE)
+	g++ $(FLAGS) $^ $(GRAPHICS_LIBS) $(LIB) -o $(EXE)
 
 # A generic make rule for creating a .o file from an identically named (sans extension) .cpp file
 # $< evaluates to the name of the _first_ dependency (the .cpp file in this case)

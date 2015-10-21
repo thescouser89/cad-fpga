@@ -610,6 +610,7 @@ void overlap_removal(map<int, double>* net_weight,
     }
 }
 
+/*
 int main() {
     Quadrant *q = new Quadrant(0, 0, 100, 100);
     list<Block*> *blk = &(q->all_blocks);
@@ -633,7 +634,7 @@ int main() {
 
      overlap_removal(NULL, NULL, NULL, q);
 }
-
+*/
 /*
 int main(int argc, char * argv[]) {
     map<int, double> net_weight;
