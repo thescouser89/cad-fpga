@@ -30,23 +30,12 @@ int main(int argc, char* argv[]) {
     }
     ifstream myfile(argv[1]);
     parse_input_file(&myfile, &net_weight, &block_num_to_block, &net_to_block);
-
-    // TODO: remove after debugging
-    map<int, Block*>::iterator it;
-    for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
-        Block *from = it->second;
-
-        if (!from->fixed) {
-            from->x = rand() % 100;
-            from->y = rand() % 100;
-        }
-    }
+    generate_matrix(&net_weight, &block_num_to_block);
+    calculate_hpwl(&net_to_block);
 
     iterate_block(&block_num_to_block);
     iterate_net_to_block(&net_to_block);
     iterate_net_weight(&net_weight);
-    calculate_hpwl(&net_to_block);
-    generate_matrix(&net_weight, &block_num_to_block);
 
     std::cout << "About to start graphics.\n";
 

@@ -356,6 +356,12 @@ void generate_matrix(map<int, double> *net_weight,
     for (int i = 0; i < n; i++) {
         cout << x_values[i] << ", " << y_values[i] << endl;
     }
+    int count2 = 0;
+    for (it2 = not_fixed.begin(); it2 != not_fixed.end(); it2++) {
+        Block *blk = *it2;
+        blk->set_coord(x_values[count2], y_values[count2]);
+        count2++;
+    }
 }
 
 void matrix_solver(int n, int *Ap, int *Ai, double *Ax, double *b, double *x) {
