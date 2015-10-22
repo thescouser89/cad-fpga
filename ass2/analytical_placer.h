@@ -71,5 +71,5 @@ class Quadrant {
 };
 
 
-void overlap_removal(map<int, double>* net_weight, map<int, Block*> *block_num_to_block, map<int, set<Block*>*> *net_to_block, Quadrant *q);
+void overlap_removal(map<int, double>* net_weight, map<int, Block*> *block_num_to_block, map<int, set<Block*>*> *net_to_block, list<Quadrant*> *q_queue);
 #endif /* ANALYTICAL_PLACER_H */

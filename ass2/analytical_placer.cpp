@@ -600,59 +600,47 @@ Quadrant::Quadrant(double x_begin, double y_begin,
 // if it passes the condition, return
 // else, process the entire queue, then evaluate the condition again
 
+static int block_count = 100000;
+static int net_count = 100000;
 
 void overlap_removal(map<int, double>* net_weight,
                      map<int, Block*> *block_num_to_block,
                      map<int, set<Block*>*> *net_to_block,
-                     Quadrant *q) {
+                     list<Quadrant*> *q_queue) {
 
-    list<Quadrant*> q_queue;
-    q_queue.push_back(q);
-    int block_count = 100000;
-    int net_count = 100000;
 
     int count = 0;
 
-    while(true) {
-        size_t queue_len = q_queue.size();
-        for (size_t i = 0; i < queue_len; i++) {
-            Quadrant *to_process = q_queue.front();
-            q_queue.pop_front();
+    size_t queue_len = q_queue->size();
+    for (size_t i = 0; i < queue_len; i++) {
+        Quadrant *to_process = q_queue->front();
+        q_queue->pop_front();
 
-            to_process->quadrant_process(&q_queue);
+        to_process->quadrant_process(q_queue);
+    }
+    cout << endl;
+    list<Quadrant*>::iterator it;
+    for (it = q_queue->begin(); it != q_queue->end(); it++) {
+        Quadrant *qua = *it;
+        Block *quadrant_center = new Block(block_count);
+        quadrant_center->fixed = true;
+        block_count++;
+        quadrant_center->set_coord(qua->x_center(), qua->y_center());
+
+        list<Block*>::iterator it2;
+        for (it2 = qua->all_blocks.begin(); it2 != qua->all_blocks.end(); it2++) {
+            Block *blk = *it2;
+            blk->add_net(net_count);
+            quadrant_center->add_net(net_count);
+            // insert weight
+            (*net_weight)[net_count] = 2;
+            (*block_num_to_block)[quadrant_center->block_num] = quadrant_center;
+            set<Block*> *net_blk_set = new set<Block*>();
+
+            net_count++;
+            // no need to add it to net_to_block since we don't want to count
+            // those connections in our hpwl calculation
         }
-        cout << endl;
-        list<Quadrant*>::iterator it;
-        for (it = q_queue.begin(); it != q_queue.end(); it++) {
-            Quadrant *qua = *it;
-            Block *quadrant_center = new Block(block_count);
-            quadrant_center->fixed = true;
-            block_count++;
-            quadrant_center->set_coord(qua->x_center(), qua->y_center());
-
-            list<Block*>::iterator it2;
-            for (it2 = qua->all_blocks.begin(); it2 != qua->all_blocks.end(); it2++) {
-                Block *blk = *it2;
-                blk->add_net(net_count);
-                quadrant_center->add_net(net_count);
-                // insert weight
-                (*net_weight)[net_count] = 2;
-                (*block_num_to_block)[quadrant_center->block_num] = quadrant_center;
-                set<Block*> *net_blk_set = new set<Block*>();
-
-                net_count++;
-                // no need to add it to net_to_block since we don't want to count
-                // those connections in our hpwl calculation
-            }
-        }
-
-        // *********************************************************************
-        // TODO: evaluate if this is good enough
-        // if so, break from loop.
-        // *********************************************************************
-        cout << " >>> Processing\n" << endl;
-        count++;
-        if (count == 10) { break; }
     }
 }
 

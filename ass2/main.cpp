@@ -59,16 +59,20 @@ int main(int argc, char* argv[]) {
             not_fixed->push_back(temp);
         }
     }
+    list<Quadrant*> q_queue;
+    q_queue.push_back(q);
 
-    overlap_removal(&net_weight, &block_num_to_block, &net_to_block, q);
-    generate_matrix(&net_weight, &block_num_to_block);
-    calculate_hpwl(&net_to_block);
-    update_message("Parititioning once");
-    set_visible_world(initial_coords);
-    init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
-    clearscreen();
-    drawscreen();
-    event_loop(NULL, NULL, NULL, drawscreen);
+    while (true) {
+        overlap_removal(&net_weight, &block_num_to_block, &net_to_block, &q_queue);
+        generate_matrix(&net_weight, &block_num_to_block);
+        calculate_hpwl(&net_to_block);
+        update_message("Parititioning once");
+        set_visible_world(initial_coords);
+        init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
+        clearscreen();
+        drawscreen();
+        event_loop(NULL, NULL, NULL, drawscreen);
+    }
     close_graphics ();
     std::cout << "Graphics closed down.\n";
     return (0);
