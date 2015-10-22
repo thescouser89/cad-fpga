@@ -536,7 +536,7 @@ Quadrant::Quadrant(double x_begin, double y_begin,
             all_blocks_cpy.remove(it_map->second);
 
             count++;
-            if (count == quarter_items_size) break;
+            if (count >= quarter_items_size) break;
         }
 
         // assign the top right quadrant blocks!
@@ -556,7 +556,7 @@ Quadrant::Quadrant(double x_begin, double y_begin,
             all_blocks_cpy.remove(it_map->second);
 
             count++;
-            if (count == quarter_items_size) break;
+            if (count >= quarter_items_size) break;
         }
 
         // assign the top left quadrant blocks!
@@ -576,7 +576,7 @@ Quadrant::Quadrant(double x_begin, double y_begin,
             all_blocks_cpy.remove(it_map->second);
 
             count++;
-            if (count == quarter_items_size) break;
+            if (count >= quarter_items_size) break;
         }
 
         // finally, bottom right will be the remaining blocks not assigned
