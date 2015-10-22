@@ -418,62 +418,55 @@ double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {
     return total_hpwl;
 }
 
-class Quadrant {
-    public:
-    // yup, copy initialization baby!
-    list<Block*> all_blocks;
-    double x_begin, y_begin;
-    double x_end, y_end;
-
-    Quadrant(double x_begin, double y_begin,
+Quadrant::Quadrant(double x_begin, double y_begin,
              double x_end, double y_end):
              x_begin(x_begin), y_begin(y_begin),
              x_end(x_end), y_end(y_end) {}
 
-    double y_higher_left() {
+    double Quadrant::y_higher_left() {
         return y_begin + (double) 3 * (y_end - y_begin) / 4;
     }
 
-    double y_higher_right() {
+    double Quadrant::y_higher_right() {
         return y_begin + (double) 3 * (y_end - y_begin) / 4;
     }
 
-    double y_lower_left() {
+    double Quadrant::y_lower_left() {
         return y_begin + (double) (y_end - y_begin) / 4;
     }
 
-    double y_lower_right() {
+    double Quadrant::y_lower_right() {
         return y_begin + (double) (y_end - y_begin) / 4;
     }
 
-    double x_higher_left() {
+    double Quadrant::x_higher_left() {
         return x_begin + (double) (x_end - x_begin) / 4;
     }
 
-    double x_higher_right() {
+    double Quadrant::x_higher_right() {
         return x_begin + (double) 3 * (x_end - x_begin) / 4;
 
     }
 
-    double x_lower_left() {
+    double Quadrant::x_lower_left() {
         return x_begin + (double) (x_end - x_begin) / 4;
     }
 
-    double x_lower_right() {
+    double Quadrant::x_lower_right() {
         return x_begin + (double) 3 * (x_end - x_begin) / 4;
 
     }
 
-    double x_center() {
+    double Quadrant::x_center() {
         return x_begin + (double) (x_end - x_begin) / 2;
     }
 
-    double y_center() {
+    double Quadrant::y_center() {
         return y_begin + (double) (y_end - y_begin) / 2;
 
     }
 
-    void quadrant_process(queue<Quadrant*> *quadrant_queue) {
+    void Quadrant::quadrant_process(list<Quadrant*> *quadrant_queue) {
 
 
         // lower left
@@ -490,13 +483,13 @@ class Quadrant {
                   &(upper_left->all_blocks),
                   &(upper_right->all_blocks));
 
-        quadrant_queue->push(lower_left);
-        quadrant_queue->push(lower_right);
-        quadrant_queue->push(upper_left);
-        quadrant_queue->push(upper_right);
+        quadrant_queue->push_back(lower_left);
+        quadrant_queue->push_back(lower_right);
+        quadrant_queue->push_back(upper_left);
+        quadrant_queue->push_back(upper_right);
     }
 
-    void partition(list<Block*> *lower_left,
+    void Quadrant::partition(list<Block*> *lower_left,
                    list<Block*> *lower_right,
                    list<Block*> *upper_left,
                    list<Block*> *upper_right) {
@@ -552,8 +545,6 @@ class Quadrant {
             // blk->x blk->y
             double distance_from_upper_right_cnr =
                 cartesian_distance_squared(blk->x, blk->y, x_upper_right_cnr, y_upper_right_cnr);
-            cout << x_upper_right_cnr << ", " << y_upper_right_cnr << endl;
-            cout << " " << blk->block_num << " (" << blk->x << ", " << blk->y << ") :: " << distance_from_upper_right_cnr << endl;
 
             distance_to_upper_right_cnr[distance_from_upper_right_cnr] = blk;
         }
@@ -595,13 +586,11 @@ class Quadrant {
         }
     }
 
-    private:
-    double cartesian_distance_squared(double x1, double y1, double x2, double y2) {
+    double Quadrant::cartesian_distance_squared(double x1, double y1, double x2, double y2) {
         double sub_x = x1 - x2;
         double sub_y = y1 - y2;
         return sub_x * sub_x + sub_y * sub_y;
     }
-};
 
 // overlap_removal
 // initially get a new Temp, with all lists empty, and with coordinates set.
@@ -617,39 +606,53 @@ void overlap_removal(map<int, double>* net_weight,
                      map<int, set<Block*>*> *net_to_block,
                      Quadrant *q) {
 
-    queue<Quadrant*> q_queue;
-    q_queue.push(q);
+    list<Quadrant*> q_queue;
+    q_queue.push_back(q);
+    int block_count = 100000;
+    int net_count = 100000;
+
+    int count = 0;
 
     while(true) {
         size_t queue_len = q_queue.size();
         for (size_t i = 0; i < queue_len; i++) {
             Quadrant *to_process = q_queue.front();
-            q_queue.pop();
+            q_queue.pop_front();
 
-            cout << to_process->x_center() << ", " << to_process->y_center();
-            cout << endl;
             to_process->quadrant_process(&q_queue);
         }
-            cout << endl;
+        cout << endl;
+        list<Quadrant*>::iterator it;
+        for (it = q_queue.begin(); it != q_queue.end(); it++) {
+            Quadrant *qua = *it;
+            Block *quadrant_center = new Block(block_count);
+            quadrant_center->fixed = true;
+            block_count++;
+            quadrant_center->set_coord(qua->x_center(), qua->y_center());
+
+            list<Block*>::iterator it2;
+            for (it2 = qua->all_blocks.begin(); it2 != qua->all_blocks.end(); it2++) {
+                Block *blk = *it2;
+                blk->add_net(net_count);
+                quadrant_center->add_net(net_count);
+                // insert weight
+                (*net_weight)[net_count] = 2;
+                (*block_num_to_block)[quadrant_center->block_num] = quadrant_center;
+                set<Block*> *net_blk_set = new set<Block*>();
+
+                net_count++;
+                // no need to add it to net_to_block since we don't want to count
+                // those connections in our hpwl calculation
+            }
+        }
 
         // *********************************************************************
         // TODO: evaluate if this is good enough
         // if so, break from loop.
         // *********************************************************************
         cout << " >>> Processing\n" << endl;
-        size_t queue_queue_len = q_queue.size();
-        for (size_t i = 0; i < queue_queue_len; i++) {
-            Quadrant *to_process = q_queue.front();
-            q_queue.pop();
-            list<Block*> *blks = &(to_process->all_blocks);
-            list<Block*>::iterator it;
-            for (it = blks->begin(); it != blks->end(); it++) {
-                cout << (*it)->block_num << endl;
-            }
-            cout << endl;
-        }
-
-        break;
+        count++;
+        if (count == 10) { break; }
     }
 }
 

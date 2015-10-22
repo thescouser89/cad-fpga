@@ -43,4 +43,33 @@ void iterate_net_weight(map<int, double>* net_weight);
 void matrix_solver(int n, int *Ap, int *Ai, double *Ax, double *b, double *x);
 double calculate_hpwl(map<int, set<Block*>*> *net_to_block);
 
+class Quadrant {
+    public:
+    // yup, copy initialization baby!
+    list<Block*> all_blocks;
+    double x_begin, y_begin;
+    double x_end, y_end;
+
+    Quadrant(double x_begin, double y_begin, double x_end, double y_end);
+    double y_higher_left();
+    double y_higher_right();
+    double y_lower_left();
+    double y_lower_right();
+    double x_higher_left();
+    double x_higher_right();
+    double x_lower_left();
+    double x_lower_right();
+    double x_center();
+    double y_center();
+    void quadrant_process(list<Quadrant*> *quadrant_queue);
+    void partition(list<Block*> *lower_left,
+                   list<Block*> *lower_right,
+                   list<Block*> *upper_left,
+                   list<Block*> *upper_right);
+    private:
+    double cartesian_distance_squared(double x1, double y1, double x2, double y2);
+};
+
+
+void overlap_removal(map<int, double>* net_weight, map<int, Block*> *block_num_to_block, map<int, set<Block*>*> *net_to_block, Quadrant *q);
 #endif /* ANALYTICAL_PLACER_H */

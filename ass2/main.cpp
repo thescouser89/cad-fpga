@@ -4,6 +4,7 @@
 #include <thread>
 #include <cstdlib>
 #include <vector>
+#include <list>
 #include <fstream>
 #include "graphics.h"
 #include "analytical_placer.h"
@@ -31,11 +32,12 @@ int main(int argc, char* argv[]) {
     ifstream myfile(argv[1]);
     parse_input_file(&myfile, &net_weight, &block_num_to_block, &net_to_block);
     generate_matrix(&net_weight, &block_num_to_block);
-    calculate_hpwl(&net_to_block);
 
     iterate_block(&block_num_to_block);
     iterate_net_to_block(&net_to_block);
     iterate_net_weight(&net_weight);
+
+    calculate_hpwl(&net_to_block);
 
     std::cout << "About to start graphics.\n";
 
@@ -45,6 +47,27 @@ int main(int argc, char* argv[]) {
     set_visible_world(initial_coords);
 
     update_message("Interactive graphics example.");
+    event_loop(NULL, NULL, NULL, drawscreen);
+
+    Quadrant *q = new Quadrant(0, 0, 100, 100);
+
+    list<Block*> *not_fixed = &(q->all_blocks);
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
+        Block *temp = it->second;
+        if (!temp->fixed) {
+            not_fixed->push_back(temp);
+        }
+    }
+
+    overlap_removal(&net_weight, &block_num_to_block, &net_to_block, q);
+    generate_matrix(&net_weight, &block_num_to_block);
+    calculate_hpwl(&net_to_block);
+    update_message("Parititioning once");
+    set_visible_world(initial_coords);
+    init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
+    clearscreen();
+    drawscreen();
     event_loop(NULL, NULL, NULL, drawscreen);
     close_graphics ();
     std::cout << "Graphics closed down.\n";
@@ -75,6 +98,9 @@ inline double to_draw_coord(double val) {
 }
 
 void draw_block(Block* blk) {
+
+    if (blk->block_num > 10000) return;
+
     double radius = radius_block;
     if (blk->fixed) {
         setcolor(GREEN);
@@ -110,7 +136,10 @@ void draw_block_connections() {
             Block *from = it->second;
             Block *to = it2->second;
 
-            if (from == to) break;
+            if (it->first > 10000) continue;
+            if (it2->first > 10000) continue;
+
+            if (from == to) continue;
 
             if (from->is_connected(to)) {
                 draw_connection(from, to);
