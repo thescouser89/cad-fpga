@@ -23,6 +23,44 @@ map<int, Block*> block_num_to_block;
 // useful to calculate HPWL
 map<int, set<Block*>*> net_to_block;
 
+void calculate_stopping_condition() {
+    list<Block*> not_fixed;
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
+        Block *temp = it->second;
+        if (!temp->fixed) {
+            not_fixed.push_back(temp);
+        }
+    }
+
+
+    int items_per_region[10 * 10];
+    for (int i = 0; i < 100; i++) {
+        items_per_region[i] = 0;
+    }
+    list<Block*>::iterator it2;
+    for (it2 = not_fixed.begin(); it2 != not_fixed.end(); it2++) {
+        Block *blk = *it2;
+        double x = blk->x;
+        double y = blk->y;
+        int region_x = (int)x / 10;
+        int region_y = (int)y / 10;
+        items_per_region[region_x * 10 + region_y]++;
+    }
+
+    int count = 0;
+    for (int i = 0; i < 100; i++) {
+        if (items_per_region[i] <= 2) {
+            continue;
+        } else {
+            count += items_per_region[i] - 2;
+        }
+        cout << count << endl;
+    }
+
+    cout << "Stopping condition " << (double) count / not_fixed.size() << endl;
+}
+
 int main(int argc, char* argv[]) {
 
     if (argc == 1) {
@@ -71,6 +109,7 @@ int main(int argc, char* argv[]) {
         init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
         clearscreen();
         drawscreen();
+        calculate_stopping_condition();
         event_loop(NULL, NULL, NULL, drawscreen);
     }
     close_graphics ();
