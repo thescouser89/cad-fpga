@@ -61,6 +61,39 @@ void calculate_stopping_condition() {
     cout << "Stopping condition " << (double) count / not_fixed.size() << endl;
 }
 
+class coordinate {
+    public:
+    double x;
+    double y;
+};
+
+void randomized_fixed_block_positions(map<int, Block*> *block_num_to_block) {
+    list<Block*> fixed;
+    vector<coordinate> coordinates;
+
+    map<int, Block*>::iterator it;
+    for (it = block_num_to_block->begin(); it != block_num_to_block->end(); it++) {
+        Block *temp = it->second;
+        if (temp->fixed) {
+            fixed.push_back(temp);
+            coordinate temptemp;
+            temptemp.x = temp->x;
+            temptemp.y = temp->y;
+            coordinates.push_back(temptemp);
+        }
+    }
+
+    list<Block*>::iterator it2;
+    for (it2 = fixed.begin(); it2 != fixed.end(); it2++) {
+        Block *fixed_blk = *it2;
+        int size_coord = coordinates.size();
+        int index = rand() % size_coord;
+        fixed_blk->x = coordinates[index].x;
+        fixed_blk->y = coordinates[index].y;
+        coordinates.erase(coordinates.begin() + index);
+    }
+}
+
 int main(int argc, char* argv[]) {
 
     if (argc == 1) {
@@ -102,6 +135,7 @@ int main(int argc, char* argv[]) {
 
     while (true) {
         overlap_removal(&net_weight, &block_num_to_block, &net_to_block, &q_queue);
+        // randomized_fixed_block_positions(&block_num_to_block);
         generate_matrix(&net_weight, &block_num_to_block);
         calculate_hpwl(&net_to_block);
         update_message("Parititioning once");
