@@ -23,7 +23,7 @@ map<int, Block*> block_num_to_block;
 // useful to calculate HPWL
 map<int, set<Block*>*> net_to_block;
 
-void calculate_stopping_condition() {
+double calculate_stopping_condition() {
     list<Block*> not_fixed;
     map<int, Block*>::iterator it;
     for (it = block_num_to_block.begin(); it != block_num_to_block.end(); it++) {
@@ -32,7 +32,6 @@ void calculate_stopping_condition() {
             not_fixed.push_back(temp);
         }
     }
-
 
     int items_per_region[10 * 10];
     for (int i = 0; i < 100; i++) {
@@ -55,10 +54,10 @@ void calculate_stopping_condition() {
         } else {
             count += items_per_region[i] - 2;
         }
-        cout << count << endl;
     }
 
     cout << "Stopping condition " << (double) count / not_fixed.size() << endl;
+    return (double) count / not_fixed.size();
 }
 
 class coordinate {
@@ -139,13 +138,14 @@ int main(int argc, char* argv[]) {
         generate_matrix(&net_weight, &block_num_to_block);
         calculate_hpwl(&net_to_block);
         update_message("Parititioning once");
-        set_visible_world(initial_coords);
-        init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
-        clearscreen();
-        drawscreen();
-        calculate_stopping_condition();
-        event_loop(NULL, NULL, NULL, drawscreen);
+        double stopping_condition = calculate_stopping_condition();
+        if (stopping_condition < 0.15) break;
     }
+    set_visible_world(initial_coords);
+    init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
+    clearscreen();
+    drawscreen();
+    event_loop(NULL, NULL, NULL, drawscreen);
     close_graphics ();
     std::cout << "Graphics closed down.\n";
     return (0);
