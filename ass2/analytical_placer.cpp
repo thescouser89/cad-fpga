@@ -633,7 +633,7 @@ void overlap_removal(map<int, double>* net_weight,
             blk->add_net(net_count);
             quadrant_center->add_net(net_count);
             // insert weight
-            (*net_weight)[net_count] = 150;
+            (*net_weight)[net_count] = 10;
             (*block_num_to_block)[quadrant_center->block_num] = quadrant_center;
             set<Block*> *net_blk_set = new set<Block*>();
 
