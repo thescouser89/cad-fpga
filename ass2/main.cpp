@@ -134,10 +134,11 @@ int main(int argc, char* argv[]) {
 
     while (true) {
         overlap_removal(&net_weight, &block_num_to_block, &q_queue);
+        // enable that line, and comment the line aboe for randomized I/O placement
         // randomized_fixed_block_positions(&block_num_to_block);
         generate_matrix(&net_weight, &block_num_to_block);
         calculate_hpwl(&net_to_block);
-        update_message("Parititioning once");
+        update_message("Partitioning done");
         double stopping_condition = calculate_stopping_condition();
         if (stopping_condition < 0.15) break;
     }
@@ -176,6 +177,8 @@ inline double to_draw_coord(double val) {
 
 void draw_block(Block* blk) {
 
+    // don't draw the pseudo-blocks
+    // pseudo-blocks are in that range
     if (blk->block_num > 10000) return;
 
     double radius = radius_block;
@@ -213,6 +216,7 @@ void draw_block_connections() {
             Block *from = it->second;
             Block *to = it2->second;
 
+            // don't draw the pseudo-nets
             if (it->first > 10000) continue;
             if (it2->first > 10000) continue;
 

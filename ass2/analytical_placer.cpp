@@ -14,6 +14,14 @@ using namespace std;
 
 static int weight = 50;
 
+// we'll start the pseudo-block with block_count number
+static int block_count = 100000;
+// we'll start the pseudo-net with net_count number
+static int net_count = 100000;
+
+// *****************************************************************************
+// Block implementation
+// *****************************************************************************
 Block::Block(int block_num): block_num(block_num) {
     fixed = false;
 }
@@ -74,6 +82,186 @@ void Block::find_intersect(Block *other, set<int> *intersect) {
     set_intersection(nets.begin(), nets.end(),other_nets->begin(),other_nets->end(),
                      std::inserter(*intersect,intersect->begin()));
 }
+// *****************************************************************************
+// End :: Block implementation
+// *****************************************************************************
+
+// *****************************************************************************
+// Quadrant implementation
+// *****************************************************************************
+Quadrant::Quadrant(double x_begin, double y_begin,
+             double x_end, double y_end):
+             x_begin(x_begin), y_begin(y_begin),
+             x_end(x_end), y_end(y_end) {}
+
+double Quadrant::y_higher_left() {
+    return y_begin + (double) 3 * (y_end - y_begin) / 4;
+}
+
+double Quadrant::y_higher_right() {
+    return y_begin + (double) 3 * (y_end - y_begin) / 4;
+}
+
+double Quadrant::y_lower_left() {
+    return y_begin + (double) (y_end - y_begin) / 4;
+}
+
+double Quadrant::y_lower_right() {
+    return y_begin + (double) (y_end - y_begin) / 4;
+}
+
+double Quadrant::x_higher_left() {
+    return x_begin + (double) (x_end - x_begin) / 4;
+}
+
+double Quadrant::x_higher_right() {
+    return x_begin + (double) 3 * (x_end - x_begin) / 4;
+
+}
+
+double Quadrant::x_lower_left() {
+    return x_begin + (double) (x_end - x_begin) / 4;
+}
+
+double Quadrant::x_lower_right() {
+    return x_begin + (double) 3 * (x_end - x_begin) / 4;
+
+}
+
+double Quadrant::x_center() {
+    return x_begin + (double) (x_end - x_begin) / 2;
+}
+
+double Quadrant::y_center() {
+    return y_begin + (double) (y_end - y_begin) / 2;
+
+}
+
+void Quadrant::quadrant_process(list<Quadrant*> *quadrant_queue) {
+
+
+    // lower left
+    Quadrant *lower_left = new Quadrant(x_begin, y_begin, x_center(), y_center());
+    // lower right
+    Quadrant *lower_right = new Quadrant(x_center(), y_begin, x_end, y_center());
+    // upper left
+    Quadrant *upper_left = new Quadrant(x_begin, y_center(), x_center(), y_end);
+    // upper right
+    Quadrant *upper_right = new Quadrant(x_center(), y_center(), x_end, y_end);
+
+    partition(&(lower_left->all_blocks),
+              &(lower_right->all_blocks),
+              &(upper_left->all_blocks),
+              &(upper_right->all_blocks));
+
+    quadrant_queue->push_back(lower_left);
+    quadrant_queue->push_back(lower_right);
+    quadrant_queue->push_back(upper_left);
+    quadrant_queue->push_back(upper_right);
+}
+
+void Quadrant::partition(list<Block*> *lower_left,
+               list<Block*> *lower_right,
+               list<Block*> *upper_left,
+               list<Block*> *upper_right) {
+
+    list<Block*> all_blocks_cpy = all_blocks;
+    int items_size = all_blocks_cpy.size();
+    int quarter_items_size = items_size / 4;
+
+    double x_lower_left_cnr = x_begin;
+    double y_lower_left_cnr = y_begin;
+
+    double x_upper_left_cnr = x_begin;
+    double y_upper_left_cnr = y_end;
+
+    double x_upper_right_cnr = x_end;
+    double y_upper_right_cnr = y_end;
+
+    // we'll use the fact that map always iterate from lowest member
+    // to highest.
+    map<double, Block*> distance_to_lower_left_cnr;
+    map<double, Block*> distance_to_upper_left_cnr;
+    map<double, Block*> distance_to_upper_right_cnr;
+
+    list<Block*>::iterator it;
+
+    // assign the lower left quadrant blocks!
+    for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
+        Block *blk = *it;
+        // blk->x blk->y
+        double distance_from_lower_left_cnr =
+            cartesian_distance_squared(blk->x, blk->y, x_lower_left_cnr, y_lower_left_cnr);
+
+        distance_to_lower_left_cnr[distance_from_lower_left_cnr] = blk;
+    }
+
+    map<double, Block*>::iterator it_map;
+    int count = 0;
+    for (it_map = distance_to_lower_left_cnr.begin(); it_map != distance_to_lower_left_cnr.end(); it_map++) {
+        lower_left->push_back(it_map->second);
+
+        all_blocks_cpy.remove(it_map->second);
+
+        count++;
+        if (count >= quarter_items_size) break;
+    }
+
+    // assign the top right quadrant blocks!
+    for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
+        Block *blk = *it;
+        // blk->x blk->y
+        double distance_from_upper_right_cnr =
+            cartesian_distance_squared(blk->x, blk->y, x_upper_right_cnr, y_upper_right_cnr);
+
+        distance_to_upper_right_cnr[distance_from_upper_right_cnr] = blk;
+    }
+
+    count = 0;
+    for (it_map = distance_to_upper_right_cnr.begin(); it_map != distance_to_upper_right_cnr.end(); it_map++) {
+        upper_right->push_back(it_map->second);
+
+        all_blocks_cpy.remove(it_map->second);
+
+        count++;
+        if (count >= quarter_items_size) break;
+    }
+
+    // assign the top left quadrant blocks!
+    for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
+        Block *blk = *it;
+        // blk->x blk->y
+        double distance_from_upper_left_cnr =
+            cartesian_distance_squared(blk->x, blk->y, x_upper_left_cnr, y_upper_left_cnr);
+
+        distance_to_upper_left_cnr[distance_from_upper_left_cnr] = blk;
+    }
+
+    count = 0;
+    for (it_map = distance_to_upper_left_cnr.begin(); it_map != distance_to_upper_left_cnr.end(); it_map++) {
+        upper_left->push_back(it_map->second);
+
+        all_blocks_cpy.remove(it_map->second);
+
+        count++;
+        if (count >= quarter_items_size) break;
+    }
+
+    // finally, bottom right will be the remaining blocks not assigned
+    list<Block*>::iterator it_blk;
+    for (it_blk = all_blocks_cpy.begin(); it_blk != all_blocks_cpy.end(); it_blk++) {
+        lower_right->push_back(*it_blk);
+    }
+}
+
+double Quadrant::cartesian_distance_squared(double x1, double y1, double x2, double y2) {
+    double sub_x = x1 - x2;
+    double sub_y = y1 - y2;
+    return sub_x * sub_x + sub_y * sub_y;
+}
+// *****************************************************************************
+// End :: Quadrant implementation
+// *****************************************************************************
 
 /**
  * Parse the input file and extract the block/net definitions and the location
@@ -229,6 +417,9 @@ void iterate_net_weight(map<int, double>* net_weight) {
     }
     cout << "===============================" << endl;
 }
+// *****************************************************************************
+// End :: debug functions
+// *****************************************************************************
 
 void generate_matrix(map<int, double> *net_weight,
                      map<int, Block*> *block_num_to_block) {
@@ -301,6 +492,7 @@ void generate_matrix(map<int, double> *net_weight,
     }
     Ap.push_back(count);
 
+    // print the matrices generated
     list<int>::iterator i;
 
     cout << endl;
@@ -420,187 +612,6 @@ double calculate_hpwl(map<int, set<Block*>*> *net_to_block) {
     return total_hpwl;
 }
 
-Quadrant::Quadrant(double x_begin, double y_begin,
-             double x_end, double y_end):
-             x_begin(x_begin), y_begin(y_begin),
-             x_end(x_end), y_end(y_end) {}
-
-    double Quadrant::y_higher_left() {
-        return y_begin + (double) 3 * (y_end - y_begin) / 4;
-    }
-
-    double Quadrant::y_higher_right() {
-        return y_begin + (double) 3 * (y_end - y_begin) / 4;
-    }
-
-    double Quadrant::y_lower_left() {
-        return y_begin + (double) (y_end - y_begin) / 4;
-    }
-
-    double Quadrant::y_lower_right() {
-        return y_begin + (double) (y_end - y_begin) / 4;
-    }
-
-    double Quadrant::x_higher_left() {
-        return x_begin + (double) (x_end - x_begin) / 4;
-    }
-
-    double Quadrant::x_higher_right() {
-        return x_begin + (double) 3 * (x_end - x_begin) / 4;
-
-    }
-
-    double Quadrant::x_lower_left() {
-        return x_begin + (double) (x_end - x_begin) / 4;
-    }
-
-    double Quadrant::x_lower_right() {
-        return x_begin + (double) 3 * (x_end - x_begin) / 4;
-
-    }
-
-    double Quadrant::x_center() {
-        return x_begin + (double) (x_end - x_begin) / 2;
-    }
-
-    double Quadrant::y_center() {
-        return y_begin + (double) (y_end - y_begin) / 2;
-
-    }
-
-    void Quadrant::quadrant_process(list<Quadrant*> *quadrant_queue) {
-
-
-        // lower left
-        Quadrant *lower_left = new Quadrant(x_begin, y_begin, x_center(), y_center());
-        // lower right
-        Quadrant *lower_right = new Quadrant(x_center(), y_begin, x_end, y_center());
-        // upper left
-        Quadrant *upper_left = new Quadrant(x_begin, y_center(), x_center(), y_end);
-        // upper right
-        Quadrant *upper_right = new Quadrant(x_center(), y_center(), x_end, y_end);
-
-        partition(&(lower_left->all_blocks),
-                  &(lower_right->all_blocks),
-                  &(upper_left->all_blocks),
-                  &(upper_right->all_blocks));
-
-        quadrant_queue->push_back(lower_left);
-        quadrant_queue->push_back(lower_right);
-        quadrant_queue->push_back(upper_left);
-        quadrant_queue->push_back(upper_right);
-    }
-
-    void Quadrant::partition(list<Block*> *lower_left,
-                   list<Block*> *lower_right,
-                   list<Block*> *upper_left,
-                   list<Block*> *upper_right) {
-
-        list<Block*> all_blocks_cpy = all_blocks;
-        int items_size = all_blocks_cpy.size();
-        int quarter_items_size = items_size / 4;
-
-        double x_lower_left_cnr = x_begin;
-        double y_lower_left_cnr = y_begin;
-
-        double x_upper_left_cnr = x_begin;
-        double y_upper_left_cnr = y_end;
-
-        double x_upper_right_cnr = x_end;
-        double y_upper_right_cnr = y_end;
-
-        // we'll use the fact that map always iterate from lowest member
-        // to highest.
-        map<double, Block*> distance_to_lower_left_cnr;
-        map<double, Block*> distance_to_upper_left_cnr;
-        map<double, Block*> distance_to_upper_right_cnr;
-
-        list<Block*>::iterator it;
-
-        // assign the lower left quadrant blocks!
-        for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
-            Block *blk = *it;
-            // blk->x blk->y
-            double distance_from_lower_left_cnr =
-                cartesian_distance_squared(blk->x, blk->y, x_lower_left_cnr, y_lower_left_cnr);
-
-            distance_to_lower_left_cnr[distance_from_lower_left_cnr] = blk;
-        }
-
-        map<double, Block*>::iterator it_map;
-        int count = 0;
-        for (it_map = distance_to_lower_left_cnr.begin(); it_map != distance_to_lower_left_cnr.end(); it_map++) {
-            lower_left->push_back(it_map->second);
-
-            all_blocks_cpy.remove(it_map->second);
-
-            count++;
-            if (count >= quarter_items_size) break;
-        }
-
-        // assign the top right quadrant blocks!
-        for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
-            Block *blk = *it;
-            // blk->x blk->y
-            double distance_from_upper_right_cnr =
-                cartesian_distance_squared(blk->x, blk->y, x_upper_right_cnr, y_upper_right_cnr);
-
-            distance_to_upper_right_cnr[distance_from_upper_right_cnr] = blk;
-        }
-
-        count = 0;
-        for (it_map = distance_to_upper_right_cnr.begin(); it_map != distance_to_upper_right_cnr.end(); it_map++) {
-            upper_right->push_back(it_map->second);
-
-            all_blocks_cpy.remove(it_map->second);
-
-            count++;
-            if (count >= quarter_items_size) break;
-        }
-
-        // assign the top left quadrant blocks!
-        for (it = all_blocks_cpy.begin(); it != all_blocks_cpy.end(); it++) {
-            Block *blk = *it;
-            // blk->x blk->y
-            double distance_from_upper_left_cnr =
-                cartesian_distance_squared(blk->x, blk->y, x_upper_left_cnr, y_upper_left_cnr);
-
-            distance_to_upper_left_cnr[distance_from_upper_left_cnr] = blk;
-        }
-
-        count = 0;
-        for (it_map = distance_to_upper_left_cnr.begin(); it_map != distance_to_upper_left_cnr.end(); it_map++) {
-            upper_left->push_back(it_map->second);
-
-            all_blocks_cpy.remove(it_map->second);
-
-            count++;
-            if (count >= quarter_items_size) break;
-        }
-
-        // finally, bottom right will be the remaining blocks not assigned
-        list<Block*>::iterator it_blk;
-        for (it_blk = all_blocks_cpy.begin(); it_blk != all_blocks_cpy.end(); it_blk++) {
-            lower_right->push_back(*it_blk);
-        }
-    }
-
-    double Quadrant::cartesian_distance_squared(double x1, double y1, double x2, double y2) {
-        double sub_x = x1 - x2;
-        double sub_y = y1 - y2;
-        return sub_x * sub_x + sub_y * sub_y;
-    }
-
-// overlap_removal
-// initially get a new Temp, with all lists empty, and with coordinates set.
-// the Temp gets processed, where the lists get populated, and 4 new Temps are
-// produced and added to a queue
-//
-// if it passes the condition, return
-// else, process the entire queue, then evaluate the condition again
-
-static int block_count = 100000;
-static int net_count = 100000;
 
 void overlap_removal(map<int, double>* net_weight,
                      map<int, Block*> *block_num_to_block,
@@ -638,50 +649,3 @@ void overlap_removal(map<int, double>* net_weight,
         }
     }
 }
-
-/*
-int main() {
-    Quadrant *q = new Quadrant(0, 0, 100, 100);
-    list<Block*> *blk = &(q->all_blocks);
-    Block *first = new Block(1);
-    Block *second = new Block(2);
-    Block *third = new Block(3);
-    Block *fourth = new Block(4);
-    Block *fifth = new Block(5);
-
-    first->set_coord(100, 90);
-    second->set_coord(5, 10);
-    third->set_coord(5, 50);
-    fourth->set_coord(80, 50);
-    fifth->set_coord(101, 101);
-
-    blk->push_back(first);
-    blk->push_back(second);
-    blk->push_back(third);
-    blk->push_back(fourth);
-    blk->push_back(fifth);
-
-     overlap_removal(NULL, NULL, NULL, q);
-}
-*/
-/*
-int main(int argc, char * argv[]) {
-    map<int, double> net_weight;
-    map<int, Block*> block_num_to_block;
-
-    // useful to calculate HPWL
-    map<int, set<Block*>*> net_to_block;
-
-    if (argc == 1) {
-        cout << "You must specify the config file" << endl;
-        return 1;
-    }
-    ifstream myfile(argv[1]);
-    parse_input_file(&myfile, &net_weight, &block_num_to_block, &net_to_block);
-    iterate_block(&block_num_to_block);
-    iterate_net_weight(&net_weight);
-    iterate_net_to_block(&net_to_block);
-
-    generate_matrix(&net_weight, &block_num_to_block);
-}
-*/
