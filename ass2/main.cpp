@@ -141,6 +141,11 @@ int main(int argc, char* argv[]) {
         update_message("Partitioning done");
         double stopping_condition = calculate_stopping_condition();
         if (stopping_condition < 0.15) break;
+        // set_visible_world(initial_coords);
+        // init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
+        // clearscreen();
+        // drawscreen();
+        // event_loop(NULL, NULL, NULL, drawscreen);
     }
     set_visible_world(initial_coords);
     init_graphics("Some Example Graphics", WHITE); // you could pass a t_color RGB triplet instead
