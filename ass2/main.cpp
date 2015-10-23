@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     q_queue.push_back(q);
 
     while (true) {
-        overlap_removal(&net_weight, &block_num_to_block, &net_to_block, &q_queue);
+        overlap_removal(&net_weight, &block_num_to_block, &q_queue);
         // randomized_fixed_block_positions(&block_num_to_block);
         generate_matrix(&net_weight, &block_num_to_block);
         calculate_hpwl(&net_to_block);

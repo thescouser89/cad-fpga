@@ -12,6 +12,8 @@
 
 using namespace std;
 
+static int weight = 50;
+
 Block::Block(int block_num): block_num(block_num) {
     fixed = false;
 }
@@ -358,7 +360,7 @@ void generate_matrix(map<int, double> *net_weight,
 
     matrix_solver(n, Ap_a, Ai_a, Ax_a, x_solns_a, x_values);
     matrix_solver(n, Ap_a, Ai_a, Ax_a, y_solns_a, y_values);
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         cout << x_values[i] << ", " << y_values[i] << endl;
     }
     int count2 = 0;
@@ -501,9 +503,6 @@ Quadrant::Quadrant(double x_begin, double y_begin,
         double x_lower_left_cnr = x_begin;
         double y_lower_left_cnr = y_begin;
 
-        double x_lower_right_cnr = x_end;
-        double y_lower_right_cnr = y_begin;
-
         double x_upper_left_cnr = x_begin;
         double y_upper_left_cnr = y_end;
 
@@ -605,11 +604,8 @@ static int net_count = 100000;
 
 void overlap_removal(map<int, double>* net_weight,
                      map<int, Block*> *block_num_to_block,
-                     map<int, set<Block*>*> *net_to_block,
                      list<Quadrant*> *q_queue) {
 
-
-    int count = 0;
 
     size_t queue_len = q_queue->size();
     for (size_t i = 0; i < queue_len; i++) {
@@ -633,9 +629,8 @@ void overlap_removal(map<int, double>* net_weight,
             blk->add_net(net_count);
             quadrant_center->add_net(net_count);
             // insert weight
-            (*net_weight)[net_count] = 10;
+            (*net_weight)[net_count] = weight;
             (*block_num_to_block)[quadrant_center->block_num] = quadrant_center;
-            set<Block*> *net_blk_set = new set<Block*>();
 
             net_count++;
             // no need to add it to net_to_block since we don't want to count
