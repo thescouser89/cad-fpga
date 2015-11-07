@@ -6,6 +6,7 @@
 #include <vector>
 #include "graphics.h"
 #include "Netlist.h"
+#include "BranchAndBound.h"
 
 // Callbacks for event-driven window handling.
 void draw_screen(void);
