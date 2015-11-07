@@ -37,13 +37,22 @@ ifeq ($(PLATFORM),X11)
 endif
 
 $(EXE): graphics.o Netlist.o BranchAndBound.o main.o
+ifeq ($(shell hostname),remote.ecf.utoronto.ca)
+	scl enable devtoolset-2 'g++ $(FLAGS) $^ $(GRAPHICS_LIBS) -o $(EXE)'
+else
 	g++ $(FLAGS) $^ $(GRAPHICS_LIBS) -o $(EXE)
+endif
 
 # A generic make rule for creating a .o file from an identically named (sans extension) .cpp file
 # $< evaluates to the name of the _first_ dependency (the .cpp file in this case)
 # $@ evaluates to the name of the target (the .o file in this case)
-%.o: %.cpp $(HDR) 
+
+%.o: %.cpp $(HDR)
+ifeq ($(shell hostname),remote.ecf.utoronto.ca)
+	scl enable devtoolset-2 'g++ -c $(FLAGS) $< -o $@'
+else
 	g++ -c $(FLAGS) $< -o $@
+endif
 
 backup:
 # Back up the source, makefile and Visual Studio project & solution. 
