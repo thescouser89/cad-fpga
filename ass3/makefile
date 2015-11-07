@@ -23,8 +23,8 @@ PLATFORM = X11
 #PLATFORM = WIN32
 #PLATFORM = NO_GRAPHICS
 
-HDR = graphics.h easygl_constants.h
-SRC = graphics.cpp main.cpp
+HDR = graphics.h easygl_constants.h Netlist.h
+SRC = graphics.cpp Netlist.cpp main.cpp
 EXE = main
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
 FLAGS = -g -Wall -Wextra -pedantic -D$(PLATFORM) -std=c++11
@@ -36,7 +36,7 @@ ifeq ($(PLATFORM),X11)
    FLAGS += $(shell pkg-config --cflags freetype2) # evaluates to the correct include flags for the freetype headers
 endif
 
-$(EXE): graphics.o main.o
+$(EXE): graphics.o Netlist.o main.o
 	g++ $(FLAGS) $^ $(GRAPHICS_LIBS) -o $(EXE)
 
 # A generic make rule for creating a .o file from an identically named (sans extension) .cpp file
@@ -44,12 +44,6 @@ $(EXE): graphics.o main.o
 # $@ evaluates to the name of the target (the .o file in this case)
 %.o: %.cpp $(HDR) 
 	g++ -c $(FLAGS) $< -o $@
-
-# graphics.o: graphics.cpp $(HDR)
-# 	g++ -c $(FLAGS) graphics.cpp
-
-# main.o: main.cpp $(HDR)
-# 	g++ -c $(FLAGS) main.cpp
 
 backup:
 # Back up the source, makefile and Visual Studio project & solution. 
