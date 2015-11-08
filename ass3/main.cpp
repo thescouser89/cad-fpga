@@ -6,6 +6,7 @@
 #include <vector>
 #include "graphics.h"
 #include "Netlist.h"
+#include "Node.h"
 #include "BranchAndBound.h"
 
 // Callbacks for event-driven window handling.
@@ -30,6 +31,31 @@ int main(int argc, char* argv[]) {
 
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
+
+    for (int i = 1; i <= 30; i++) {
+        for (int j = 1; j <= 30; j++) {
+            cout << Netlist::num_edges(i, j) << " ";
+        }
+        cout << endl;
+    }
+    shared_ptr<vector<int>> order(new vector<int>());
+    order->push_back(1);
+    order->push_back(2);
+    order->push_back(3);
+    order->push_back(4);
+    order->push_back(5);
+
+    shared_ptr<Node::Node> root = Node::create_root(order);
+    root->print_info();
+    shared_ptr<Node::Node> child = Node::get_branch(root, order, Node::Direction::Right);
+    child->print_info();
+    child = Node::get_branch(child, order, Node::Direction::Right);
+    child->print_info();
+    child = Node::get_branch(child, order, Node::Direction::Left);
+    child->print_info();
+    child = Node::get_branch(child, order, Node::Direction::Left);
+    child->print_info();
+
     return (0);
 }
 

@@ -23,6 +23,10 @@ namespace Netlist {
     // =========================================================================
     // Function Definitions
     // =========================================================================
+    void connect(int i, int j);
+    bool is_connected(int i, int j);
+    int num_edges(int i, int j);
+
 
     /* parse the netlist file and populate ADJ_MATRIX */
     void parse_file(ifstream &);

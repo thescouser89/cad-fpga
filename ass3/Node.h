@@ -22,6 +22,12 @@ namespace Node {
         shared_ptr<Node> get_parent();
         void set_parent(shared_ptr<Node>);
 
+        shared_ptr<Node> get_left();
+        void set_left(shared_ptr<Node>);
+
+        shared_ptr<Node> get_right();
+        void set_right(shared_ptr<Node>);
+
         int get_block_num();
 
         int get_number_left();
@@ -34,8 +40,11 @@ namespace Node {
         void set_level(int level);
 
         int calculate_lower_bound();
+        int get_lower_bound();
         void set_lower_bound(int lower_bound);
 
+        shared_ptr<Node> get_opposite_side();
+        shared_ptr<Node> get_same_side();
         void print_info();
 
     private:
@@ -47,6 +56,9 @@ namespace Node {
 
         Direction direction;
         shared_ptr<Node> parent = nullptr;
+
+        shared_ptr<Node> left = nullptr;
+        shared_ptr<Node> right = nullptr;
     };
 
     // Helper Functions

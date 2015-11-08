@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 #include "Node.h"
+#include "Netlist.h"
 
 using namespace std;
 
@@ -23,6 +24,18 @@ namespace Node {
         this->parent = parent;
     }
 
+    shared_ptr<Node> Node::get_left() { return this->left; }
+
+    void Node::set_left(shared_ptr<Node> left) {
+        this->left = left;
+    }
+
+    shared_ptr<Node> Node::get_right() { return this->right; }
+
+    void Node::set_right(shared_ptr<Node> right) {
+        this->right = right;
+    }
+
     int Node::get_block_num() { return this->block_num; }
 
     int Node::get_number_left() { return this->number_left; }
@@ -34,18 +47,45 @@ namespace Node {
     int Node::get_level() { return this->level; }
     void Node::set_level(int level) { this->level = level; }
 
-    // TODO: improve me!!!!!!!!!!!!!!!!
     int Node::calculate_lower_bound() {
-        if (this->lower_bound == -1) {
-            // calculate the lower bound
-            return -10;
-        } else {
-            // use the saved value
+
+        // already calculated lower bound
+        if (this->lower_bound != -1) {
             return this->lower_bound;
+        }
+
+        // not yet calculated lower bound
+        int current_lower_bound = 0;
+        shared_ptr<Node> opposite_side = this->get_opposite_side();
+
+        while(opposite_side != nullptr) {
+            current_lower_bound += Netlist::num_edges(this->get_block_num(), opposite_side->get_block_num());
+            opposite_side = opposite_side->get_same_side();
+        }
+
+        this->lower_bound = parent->get_lower_bound() + current_lower_bound;
+
+        return this->lower_bound;
+    }
+
+    int Node::get_lower_bound() { return this->lower_bound; }
+    void Node::set_lower_bound(int lower_bound) { this->lower_bound = lower_bound; }
+
+    shared_ptr<Node> Node::get_opposite_side() {
+        if (this->get_direction() == Direction::Left) {
+            return this->get_right();
+        } else {
+            return this->get_left();
         }
     }
 
-    void Node::set_lower_bound(int lower_bound) { this->lower_bound = lower_bound; }
+    shared_ptr<Node> Node::get_same_side() {
+        if (this->get_direction() == Direction::Left) {
+            return this->get_left();
+        } else {
+            return this->get_right();
+        }
+    }
 
     void Node::print_info() {
         std::cout << "-------------------" << endl;
@@ -58,11 +98,23 @@ namespace Node {
 
         std::cout << "Left nodes: " << this->number_left << endl;
         std::cout << "Right nodes: " << this->number_right << endl;
+        if (this->left != nullptr) {
+            std::cout << "Left: " << this->left->get_block_num() << endl;
+        } else {
+            std::cout << "No Left" << endl;
+        }
+        if (this->right != nullptr) {
+            std::cout << "Right: " << this->right->get_block_num() << endl;
+        } else {
+            std::cout << "No Right" << endl;
+        }
+        std::cout << "Lower Bound: " << this->get_lower_bound() << endl;
         std::cout << "-=-=-=-=-=-=-=-=-=-" << endl;
     }
 
     shared_ptr<Node> create_root(shared_ptr<vector<int>> order) {
 
+        // we'll always start the root in the left direction
         Node *root = new Node((*order)[0], Direction::Left);
 
         root->set_level(0);
@@ -80,6 +132,14 @@ namespace Node {
 
         child->set_parent(parent);
 
+        if (parent->get_direction() == Direction::Left) {
+            child->set_left(parent);
+            child->set_right(parent->get_right());
+        } else {
+            child->set_left(parent->get_left());
+            child->set_right(parent);
+        }
+
         if (dir == Direction::Left) {
             child->set_number_left(parent->get_number_left() + 1);
             child->set_number_right(parent->get_number_right());
@@ -88,7 +148,13 @@ namespace Node {
             child->set_number_right(parent->get_number_right() + 1);
         }
 
+
+
         child->set_level(level_child);
+        // TODO: remove later
+        ///////////////////////////////////////////////////////////////
+        child->calculate_lower_bound();
+        ///////////////////////////////////////////////////////////////
         return shared_ptr<Node>(child);
     }
 }
@@ -106,6 +172,8 @@ namespace Node {
 //    shared_ptr<Node::Node> child = Node::get_branch(root, order, Node::Direction::Right);
 //    child->print_info();
 //    child = Node::get_branch(child, order, Node::Direction::Right);
+//    child->print_info();
+//    child = Node::get_branch(child, order, Node::Direction::Left);
 //    child->print_info();
 //    child = Node::get_branch(child, order, Node::Direction::Left);
 //    child->print_info();
