@@ -40,22 +40,12 @@ int main(int argc, char* argv[]) {
     }
     shared_ptr<vector<int>> order(new vector<int>());
     order->push_back(1);
+    order->push_back(4);
     order->push_back(2);
     order->push_back(3);
-    order->push_back(4);
-    order->push_back(5);
 
-    shared_ptr<Node::Node> root = Node::create_root(order);
-    root->print_info();
-    shared_ptr<Node::Node> child = Node::get_branch(root, order, Node::Direction::Right);
-    child->print_info();
-    child = Node::get_branch(child, order, Node::Direction::Right);
-    child->print_info();
-    child = Node::get_branch(child, order, Node::Direction::Left);
-    child->print_info();
-    child = Node::get_branch(child, order, Node::Direction::Left);
-    child->print_info();
 
+    BranchAndBound::breadth_first_search(order);
     return (0);
 }
 

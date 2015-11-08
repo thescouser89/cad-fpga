@@ -3,18 +3,38 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <iostream>
 
 #include "Netlist.h"
 #include "Node.h"
 
+using namespace std;
+
 namespace BranchAndBound {
     void depth_first_search(shared_ptr<vector<int>> order) {
+        // we already visite the root
+        int nodes_visited = 1;
+
+        int total_blocknums = order->size();
+        int total_node_partitioned = total_blocknums / 2;
+
+        int best = 500000;
+        shared_ptr<Node::Node> best_node = nullptr;
+
+
 
     }
 
     void breadth_first_search(shared_ptr<vector<int>> order) {
 
-        int best = 50000000000;
+        // we already visit the root
+        int nodes_visited = 1;
+
+        int total_blocknums = order->size();
+        int total_node_partitioned = total_blocknums / 2;
+
+        int best = 500000;
+        shared_ptr<Node::Node> best_node = nullptr;
 
         queue<shared_ptr<Node::Node>> q;
 
@@ -31,14 +51,48 @@ namespace BranchAndBound {
             shared_ptr<Node::Node> right_child = Node::get_branch(evaluate,
                                                                   order,
                                                                   Node::Direction::Right);
+
+            if (left_child == nullptr && right_child == nullptr) {
+                // reached the leaf, and a solution
+                if (evaluate->calculate_lower_bound() <= best) {
+                    best = evaluate->calculate_lower_bound();
+                    best_node = evaluate;
+                }
+                continue;
+            }
+
+            nodes_visited++;
+            nodes_visited++;
             if (left_child->calculate_lower_bound() < best) {
                 // TODO: still have to evaluate if solution is balanced
-                q.push(left_child);
+                if (!(left_child->get_number_left() > total_node_partitioned ||
+                    left_child->get_number_right() > total_node_partitioned)) {
+                    q.push(left_child);
+                }
             }
 
             if (right_child->calculate_lower_bound() < best) {
-                q.push(right_child);
+                if (!(right_child->get_number_left() > total_node_partitioned ||
+                      right_child->get_number_right() > total_node_partitioned)) {
+                    q.push(right_child);
+                }
             }
+        }
+
+        if (best_node != nullptr) {
+            shared_ptr<Node::Node> haa = best_node;
+            while (haa != nullptr) {
+                cout << "Best: " << haa->get_block_num();
+                if (haa->get_direction() == Node::Direction::Left) {
+                    cout << "Left";
+                } else {
+                    cout << "Right";
+                }
+                cout << endl;
+                haa = haa->get_parent();
+            }
+            cout << "Best lower bound: " << best << endl;
+            cout << "Nodes visited: " << nodes_visited << endl;
         }
     }
 

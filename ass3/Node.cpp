@@ -128,6 +128,10 @@ namespace Node {
         int level_parent = parent->get_level();
         int level_child = level_parent + 1;
 
+        if (level_child >= order->size()) {
+            return nullptr;
+        }
+
         Node *child = new Node((*order)[level_child], dir);
 
         child->set_parent(parent);
