@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <queue>
+#include <stack>
 #include <vector>
 #include <iostream>
 
@@ -21,7 +22,64 @@ namespace BranchAndBound {
         int best = 500000;
         shared_ptr<Node::Node> best_node = nullptr;
 
+        stack<shared_ptr<Node::Node>> s;
 
+        shared_ptr<Node::Node> root = Node::create_root(order);
+        s.push(root);
+
+        while (!s.empty()) {
+            shared_ptr<Node::Node> evaluate = s.top();
+            s.pop();
+
+            shared_ptr<Node::Node> left_child = Node::get_branch(evaluate,
+                                                                 order,
+                                                                 Node::Direction::Left);
+            shared_ptr<Node::Node> right_child = Node::get_branch(evaluate,
+                                                                  order,
+                                                                  Node::Direction::Right);
+
+            if (left_child == nullptr && right_child == nullptr) {
+                // reached the leaf, and a solution
+                if (evaluate->calculate_lower_bound() < best) {
+                    best = evaluate->calculate_lower_bound();
+                    best_node = evaluate;
+                }
+                continue;
+            }
+
+            nodes_visited++;
+            nodes_visited++;
+
+            if (right_child->calculate_lower_bound() < best) {
+                if (!(right_child->get_number_left() > total_node_partitioned ||
+                      right_child->get_number_right() > total_node_partitioned)) {
+                    s.push(right_child);
+                }
+            }
+
+            if (left_child->calculate_lower_bound() < best) {
+                // TODO: still have to evaluate if solution is balanced
+                if (!(left_child->get_number_left() > total_node_partitioned ||
+                      left_child->get_number_right() > total_node_partitioned)) {
+                    s.push(left_child);
+                }
+            }
+        }
+        if (best_node != nullptr) {
+            shared_ptr<Node::Node> haa = best_node;
+            while (haa != nullptr) {
+                cout << "Best: " << haa->get_block_num();
+                if (haa->get_direction() == Node::Direction::Left) {
+                    cout << "Left";
+                } else {
+                    cout << "Right";
+                }
+                cout << endl;
+                haa = haa->get_parent();
+            }
+            cout << "Best lower bound: " << best << endl;
+            cout << "Nodes visited: " << nodes_visited << endl;
+        }
 
     }
 

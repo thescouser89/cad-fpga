@@ -39,13 +39,26 @@ int main(int argc, char* argv[]) {
         cout << endl;
     }
     shared_ptr<vector<int>> order(new vector<int>());
-    order->push_back(1);
     order->push_back(4);
     order->push_back(2);
+    order->push_back(1);
     order->push_back(3);
+    order->push_back(5);
+    order->push_back(6);
+    order->push_back(7);
+    order->push_back(8);
+    order->push_back(9);
+    order->push_back(11);
+    order->push_back(12);
+    order->push_back(13);
+    order->push_back(10);
+    order->push_back(14);
+    order->push_back(15);
+    order->push_back(16);
 
 
-    BranchAndBound::breadth_first_search(order);
+//    BranchAndBound::breadth_first_search(order);
+    BranchAndBound::depth_first_search(order);
     return (0);
 }
 
