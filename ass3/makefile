@@ -23,8 +23,8 @@ PLATFORM = X11
 #PLATFORM = WIN32
 #PLATFORM = NO_GRAPHICS
 
-HDR = graphics.h easygl_constants.h BranchAndBound.h Netlist.h
-SRC = graphics.cpp Netlist.cpp BranchAndBound.cpp main.cpp
+HDR = graphics.h easygl_constants.h Node.h BranchAndBound.h Netlist.h
+SRC = graphics.cpp Netlist.cpp Node.cpp BranchAndBound.cpp main.cpp
 EXE = main
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
 FLAGS = -g -Wall -Wextra -pedantic -D$(PLATFORM) -std=c++11
@@ -36,7 +36,7 @@ ifeq ($(PLATFORM),X11)
    FLAGS += $(shell pkg-config --cflags freetype2) # evaluates to the correct include flags for the freetype headers
 endif
 
-$(EXE): graphics.o Netlist.o BranchAndBound.o main.o
+$(EXE): graphics.o Netlist.o Node.o BranchAndBound.o main.o
 ifeq ($(shell hostname),remote.ecf.utoronto.ca)
 	scl enable devtoolset-2 'g++ $(FLAGS) $^ $(GRAPHICS_LIBS) -o $(EXE)'
 else
