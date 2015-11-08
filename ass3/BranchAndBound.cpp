@@ -47,20 +47,24 @@ namespace BranchAndBound {
                 continue;
             }
 
-            nodes_visited++;
-            nodes_visited++;
+            // if solution balanced
+            if (!(right_child->get_number_left() > total_node_partitioned ||
+                  right_child->get_number_right() > total_node_partitioned)) {
 
-            if (right_child->calculate_lower_bound() < best) {
-                if (!(right_child->get_number_left() > total_node_partitioned ||
-                      right_child->get_number_right() > total_node_partitioned)) {
+                nodes_visited++;
+
+                if (right_child->calculate_lower_bound() < best) {
                     s.push(right_child);
                 }
             }
 
-            if (left_child->calculate_lower_bound() < best) {
-                // TODO: still have to evaluate if solution is balanced
-                if (!(left_child->get_number_left() > total_node_partitioned ||
-                      left_child->get_number_right() > total_node_partitioned)) {
+            // if solution balanced
+            if (!(left_child->get_number_left() > total_node_partitioned ||
+                  left_child->get_number_right() > total_node_partitioned)) {
+
+                nodes_visited++;
+
+                if (left_child->calculate_lower_bound() < best) {
                     s.push(left_child);
                 }
             }
@@ -119,23 +123,29 @@ namespace BranchAndBound {
                 continue;
             }
 
-            nodes_visited++;
-            nodes_visited++;
-            if (left_child->calculate_lower_bound() < best) {
-                // TODO: still have to evaluate if solution is balanced
-                if (!(left_child->get_number_left() > total_node_partitioned ||
-                    left_child->get_number_right() > total_node_partitioned)) {
+            // if solution balanced
+            if (!(left_child->get_number_left() > total_node_partitioned ||
+                  left_child->get_number_right() > total_node_partitioned)) {
+
+                nodes_visited++;
+
+                if (left_child->calculate_lower_bound() < best) {
                     q.push(left_child);
                 }
             }
 
-            if (right_child->calculate_lower_bound() < best) {
-                if (!(right_child->get_number_left() > total_node_partitioned ||
-                      right_child->get_number_right() > total_node_partitioned)) {
+
+            if (!(right_child->get_number_left() > total_node_partitioned ||
+                  right_child->get_number_right() > total_node_partitioned)) {
+
+                nodes_visited++;
+
+                if (right_child->calculate_lower_bound() < best) {
                     q.push(right_child);
                 }
             }
         }
+
 
         if (best_node != nullptr) {
             shared_ptr<Node::Node> haa = best_node;
