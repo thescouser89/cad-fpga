@@ -13,13 +13,13 @@ using namespace std;
 
 namespace BranchAndBound {
     void depth_first_search(shared_ptr<vector<int>> order) {
-        // we already visite the root
+        // we already visited the root
         int nodes_visited = 1;
 
         int total_blocknums = order->size();
         int total_node_partitioned = total_blocknums / 2;
 
-        int best = 500000;
+        int best = 50000;
         shared_ptr<Node::Node> best_node = nullptr;
 
         stack<shared_ptr<Node::Node>> s;

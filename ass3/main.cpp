@@ -55,6 +55,20 @@ int main(int argc, char* argv[]) {
     order->push_back(9);
     order->push_back(12);
     order->push_back(16);
+//    order->push_back(17);
+//    order->push_back(18);
+//    order->push_back(19);
+//    order->push_back(20);
+//    order->push_back(21);
+//    order->push_back(22);
+//    order->push_back(23);
+//    order->push_back(24);
+//    order->push_back(25);
+//    order->push_back(26);
+//    order->push_back(27);
+//    order->push_back(28);
+//    order->push_back(29);
+//    order->push_back(30);
 
 
 //    BranchAndBound::breadth_first_search(order);
