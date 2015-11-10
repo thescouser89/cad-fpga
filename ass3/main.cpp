@@ -66,7 +66,8 @@ int main(int argc, char* argv[]) {
 
 
 //    BranchAndBound::breadth_first_search(order);
-    BranchAndBound::depth_first_search(order);
+//    BranchAndBound::depth_first_search(order);
+    BranchAndBound::parallel_breadth_first_search(order);
     return (0);
 }
 

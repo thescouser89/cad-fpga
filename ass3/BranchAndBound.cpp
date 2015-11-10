@@ -182,50 +182,80 @@ namespace BranchAndBound {
 
         shared_ptr<Node::Node> root = Node::create_root(order);
         q.push(root);
+        int semaphore = 0;
+#pragma omp parallel
+        while (semaphore > 0 || !q.empty()) {
+            shared_ptr<Node::Node> evaluate;
+            bool processed = false;
 
-        while (!q.empty()) {
-            shared_ptr<Node::Node> evaluate = q.front();
-            q.pop();
-
-            shared_ptr<Node::Node> left_child = Node::get_branch(evaluate,
-                                                                 order,
-                                                                 Node::Direction::Left);
-            shared_ptr<Node::Node> right_child = Node::get_branch(evaluate,
-                                                                  order,
-                                                                  Node::Direction::Right);
-
-            if (left_child == nullptr && right_child == nullptr) {
-                // reached the leaf, and a solution
-                if (evaluate->calculate_lower_bound() <= best) {
-                    best = evaluate->calculate_lower_bound();
-                    best_node = evaluate;
-                }
-                continue;
-            }
-
-            // if solution balanced
-            if (!(left_child->get_number_left() > total_node_partitioned ||
-                  left_child->get_number_right() > total_node_partitioned)) {
-
-                nodes_visited++;
-
-                if (left_child->calculate_lower_bound() < best) {
-                    q.push(left_child);
+#pragma omp critical
+            {
+                if (!q.empty()) {
+                    evaluate = q.front();
+                    q.pop();
+                    semaphore++;
+                    processed = true;
                 }
             }
 
+            if (processed) {
+                shared_ptr<Node::Node> left_child = Node::get_branch(
+                        evaluate,
+                        order,
+                        Node::Direction::Left);
+                shared_ptr<Node::Node> right_child = Node::get_branch(
+                        evaluate,
+                        order,
+                        Node::Direction::Right);
 
-            if (!(right_child->get_number_left() > total_node_partitioned ||
-                  right_child->get_number_right() > total_node_partitioned)) {
+                if (left_child == nullptr && right_child == nullptr) {
+                    // reached the leaf, and a solution
+#pragma omp critical
+                    {
+                        if (evaluate->calculate_lower_bound() <= best) {
+                            best = evaluate->calculate_lower_bound();
+                            best_node = evaluate;
+                        }
+                        semaphore--;
+                    }
+                    continue;
+                }
 
-                nodes_visited++;
+                // if solution balanced
+                if (!(left_child->get_number_left() >
+                      total_node_partitioned ||
+                      left_child->get_number_right() >
+                      total_node_partitioned)) {
 
-                if (right_child->calculate_lower_bound() < best) {
-                    q.push(right_child);
+#pragma omp critical
+                    nodes_visited++;
+
+                    if (left_child->calculate_lower_bound() < best) {
+#pragma omp critical
+                        q.push(left_child);
+                    }
+                }
+
+
+                if (!(right_child->get_number_left() >
+                      total_node_partitioned ||
+                      right_child->get_number_right() >
+                      total_node_partitioned)) {
+
+#pragma omp critical
+                    nodes_visited++;
+
+                    if (right_child->calculate_lower_bound() < best) {
+#pragma omp critical
+                        q.push(right_child);
+                    }
+                }
+#pragma omp critical
+                {
+                    semaphore--;
                 }
             }
         }
-
 
         if (best_node != nullptr) {
             shared_ptr<Node::Node> haa = best_node;
@@ -242,6 +272,5 @@ namespace BranchAndBound {
             cout << "Best lower bound: " << best << endl;
             cout << "Nodes visited: " << nodes_visited << endl;
         }
-
     }
 }
