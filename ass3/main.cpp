@@ -32,12 +32,6 @@ int main(int argc, char* argv[]) {
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
 
-    for (int i = 1; i <= 30; i++) {
-        for (int j = 1; j <= 30; j++) {
-            cout << Netlist::num_edges(i, j) << " ";
-        }
-        cout << endl;
-    }
     shared_ptr<vector<int>> order(new vector<int>());
     order->push_back(1);
     order->push_back(3);
@@ -55,16 +49,16 @@ int main(int argc, char* argv[]) {
     order->push_back(9);
     order->push_back(12);
     order->push_back(16);
-//    order->push_back(17);
-//    order->push_back(18);
-//    order->push_back(19);
-//    order->push_back(20);
-//    order->push_back(21);
-//    order->push_back(22);
-//    order->push_back(23);
-//    order->push_back(24);
-//    order->push_back(25);
-//    order->push_back(26);
+    order->push_back(17);
+    order->push_back(18);
+    order->push_back(19);
+    order->push_back(20);
+    order->push_back(21);
+    order->push_back(22);
+    order->push_back(23);
+    order->push_back(24);
+    order->push_back(25);
+    order->push_back(26);
 //    order->push_back(27);
 //    order->push_back(28);
 //    order->push_back(29);

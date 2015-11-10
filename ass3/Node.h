@@ -6,6 +6,7 @@
 #define ASS3_NODE_H
 
 #include <memory>
+#include <set>
 
 using namespace std;
 
@@ -15,6 +16,8 @@ namespace Node {
 
     class Node {
     public:
+        set<int> nets_intersected;
+
         Node(int block_num, Direction dir);
 
         Direction get_direction();
@@ -45,13 +48,16 @@ namespace Node {
 
         shared_ptr<Node> get_opposite_side();
         shared_ptr<Node> get_same_side();
+
+        set<int> get_nets_intersected();
+        void copy_nets_intersected(set<int> &);
         void print_info();
 
     private:
-        int block_num = 0;
-        int number_left = 0;
-        int number_right = 0;
-        int level = 0;
+        unsigned int block_num = 0;
+        unsigned int number_left = 0;
+        unsigned int number_right = 0;
+        unsigned int level = 0;
         int lower_bound = -1;
 
         Direction direction;

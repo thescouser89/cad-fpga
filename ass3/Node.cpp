@@ -5,6 +5,7 @@
 // then evaluate the lowerbound for each branch
 
 #include <memory>
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include "Node.h"
@@ -55,15 +56,20 @@ namespace Node {
         }
 
         // not yet calculated lower bound
-        int current_lower_bound = 0;
         shared_ptr<Node> opposite_side = this->get_opposite_side();
 
         while(opposite_side != nullptr) {
-            current_lower_bound += Netlist::num_edges(this->get_block_num(), opposite_side->get_block_num());
+            set<int> difference;
+
+            shared_ptr<set<int>> nets_crossed = \
+            Netlist::nets_connected_to(this->get_block_num(), opposite_side->get_block_num());
+
+            this->nets_intersected.insert(nets_crossed->begin(), nets_crossed->end());
+
             opposite_side = opposite_side->get_same_side();
         }
 
-        this->lower_bound = parent->get_lower_bound() + current_lower_bound;
+        this->lower_bound = this->nets_intersected.size();
 
         return this->lower_bound;
     }
@@ -86,6 +92,9 @@ namespace Node {
             return this->get_right();
         }
     }
+
+    set<int> Node::get_nets_intersected() { return nets_intersected; }
+    void Node::copy_nets_intersected(set<int> &set_to_copy) { this->nets_intersected = set_to_copy; }
 
     void Node::print_info() {
         std::cout << "-------------------" << endl;
@@ -125,8 +134,8 @@ namespace Node {
     }
 
     shared_ptr<Node> get_branch(shared_ptr<Node> parent, shared_ptr<vector<int>> order, Direction dir) {
-        int level_parent = parent->get_level();
-        int level_child = level_parent + 1;
+        unsigned int level_parent = parent->get_level();
+        unsigned int level_child = level_parent + 1;
 
         if (level_child >= order->size()) {
             return nullptr;
@@ -135,6 +144,7 @@ namespace Node {
         Node *child = new Node((*order)[level_child], dir);
 
         child->set_parent(parent);
+        child->copy_nets_intersected(parent->nets_intersected);
 
         if (parent->get_direction() == Direction::Left) {
             child->set_left(parent);
@@ -155,10 +165,6 @@ namespace Node {
 
 
         child->set_level(level_child);
-        // TODO: remove later
-        ///////////////////////////////////////////////////////////////
-        child->calculate_lower_bound();
-        ///////////////////////////////////////////////////////////////
         return shared_ptr<Node>(child);
     }
 }
