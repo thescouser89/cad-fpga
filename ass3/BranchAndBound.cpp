@@ -307,7 +307,7 @@ namespace BranchAndBound {
         best_node_parallel = initial_solution();
         best_parallel = best_node_parallel->calculate_lower_bound();
 
-        shared_ptr<queue<shared_ptr<Node::Node>>> q = shallow_breadth_first_search(order, 4);
+        shared_ptr<queue<shared_ptr<Node::Node>>> q = shallow_breadth_first_search(order, 5);
         vector<shared_ptr<thread>> threads;
 
         while(!q->empty()) {
@@ -428,8 +428,8 @@ namespace BranchAndBound {
         int total_blocknums = order->size();
         int total_node_partitioned = total_blocknums / 2;
 
-        int best = 500000;
-        shared_ptr<Node::Node> best_node = nullptr;
+        shared_ptr<Node::Node> best_node = initial_solution();
+        int best = best_node->calculate_lower_bound();
 
         queue<shared_ptr<Node::Node>> q;
 
