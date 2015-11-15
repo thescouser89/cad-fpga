@@ -20,7 +20,6 @@
 using namespace std;
 
 namespace BranchAndBound {
-    bool GRAPHICS_ON = false;
 
     /**
      * Helper method to draw stuff in graphics mode
@@ -50,6 +49,10 @@ namespace BranchAndBound {
             setcolor(BLACK);
         }
     }
+
+    // *************************************************************************
+    // Initial Solution
+    // *************************************************************************
 
     static shared_ptr<set<int>> get_block_set() {
         shared_ptr<set<int>> block_set(new set<int>());
@@ -144,6 +147,56 @@ namespace BranchAndBound {
         }
         return n;
     }
+    // *************************************************************************
+    // End :: Initial Solution
+    // *************************************************************************
+
+    static void print_best_node(shared_ptr<Node::Node> best_node, int nodes_visited) {
+        if (best_node != nullptr) {
+            shared_ptr<Node::Node> haa = best_node;
+            while (haa != nullptr) {
+                cout << "Best: " << haa->get_block_num();
+                if (haa->get_direction() == Node::Direction::Left) {
+                    cout << "Left";
+                } else {
+                    cout << "Right";
+                }
+                cout << endl;
+                haa = haa->get_parent();
+            }
+            cout << "Best lower bound: " << best_node->calculate_lower_bound() << endl;
+            cout << "Nodes visited: " << nodes_visited << endl;
+        } else {
+            cout << "No solution found :(" << endl;
+        }
+    }
+
+    void evaluate_child(shared_ptr<Node::Node> child, queue<shared_ptr<Node::Node>>& s, int best, int total_node_partitioned) {
+        // if solution balanced
+        if (!(child->get_number_left() > total_node_partitioned ||
+              child->get_number_right() > total_node_partitioned)) {
+
+            if (child->calculate_lower_bound() < best) {
+                s.push(child);
+            }
+        }
+    }
+
+    void evaluate_child(shared_ptr<Node::Node> child, stack<shared_ptr<Node::Node>>& s, int best, int total_node_partitioned) {
+        // if solution balanced
+        if (!(child->get_number_left() > total_node_partitioned ||
+              child->get_number_right() > total_node_partitioned)) {
+
+            if (child->calculate_lower_bound() < best) {
+                s.push(child);
+                if (Node::GRAPHICS_ON) draw_node(child, false, false);
+            } else {
+                if (Node::GRAPHICS_ON) draw_node(child, true, false);
+            }
+        } else {
+            if (Node::GRAPHICS_ON) draw_node(child, false, true);
+        }
+    }
 
     void depth_first_search(shared_ptr<vector<int>> order) {
         // we already visited the root
@@ -159,10 +212,8 @@ namespace BranchAndBound {
         stack<shared_ptr<Node::Node>> s;
 
         shared_ptr<Node::Node> root = Node::create_root(order);
-        root->x_pos = Node::x_root_position;
-        root->y_pos = Node::y_root_position;
 
-        if (GRAPHICS_ON) draw_node(root, false, false);
+        if (Node::GRAPHICS_ON) draw_node(root, false, false);
         s.push(root);
 
         while (!s.empty()) {
@@ -185,53 +236,12 @@ namespace BranchAndBound {
                 continue;
             }
 
-            // if solution balanced
             nodes_visited++;
-            if (!(right_child->get_number_left() > total_node_partitioned ||
-                  right_child->get_number_right() > total_node_partitioned)) {
-
-                if (right_child->calculate_lower_bound() < best) {
-                    s.push(right_child);
-                    if (GRAPHICS_ON) draw_node(right_child, false, false);
-                } else {
-                    if (GRAPHICS_ON) draw_node(right_child, true, false);
-                }
-            } else {
-                if (GRAPHICS_ON) draw_node(right_child, false, true);
-            }
-
-            // if solution balanced
+            evaluate_child(right_child, s, best, total_node_partitioned);
             nodes_visited++;
-            if (!(left_child->get_number_left() > total_node_partitioned ||
-                  left_child->get_number_right() > total_node_partitioned)) {
-
-                if (left_child->calculate_lower_bound() < best) {
-                    if (GRAPHICS_ON) draw_node(left_child, false, false);
-                    s.push(left_child);
-                } else {
-                    if (GRAPHICS_ON) draw_node(left_child, true, false);
-                }
-            } else {
-                if (GRAPHICS_ON) draw_node(left_child, false, true);
-            }
+            evaluate_child(left_child, s, best, total_node_partitioned);
         }
-
-        if (best_node != nullptr) {
-            shared_ptr<Node::Node> haa = best_node;
-            while (haa != nullptr) {
-                cout << "Best: " << haa->get_block_num();
-                if (haa->get_direction() == Node::Direction::Left) {
-                    cout << "Left";
-                } else {
-                    cout << "Right";
-                }
-                cout << endl;
-                haa = haa->get_parent();
-            }
-            cout << "Best lower bound: " << best << endl;
-            cout << "Nodes visited: " << nodes_visited << endl;
-        }
-
+        print_best_node(best_node, nodes_visited);
     }
 
     static shared_ptr<queue<shared_ptr<Node::Node>>> shallow_breadth_first_search(shared_ptr<vector<int>> order, int level) {
@@ -251,10 +261,10 @@ namespace BranchAndBound {
         q->push(root);
 
         int count= 0;
-        int real_loop_passed = (int)pow(2, level);
+        int loops_to_process = (int)pow(2, level);
         while (!q->empty()) {
             count++;
-            if (count == real_loop_passed) break;
+            if (count == loops_to_process) break;
 
             shared_ptr<Node::Node> evaluate = q->front();
             q->pop();
@@ -324,22 +334,21 @@ namespace BranchAndBound {
                 continue;
             }
 
+            nodes_visited_parallel++;
             // if solution balanced
             if (!(right_child->get_number_left() > total_node_partitioned ||
                   right_child->get_number_right() > total_node_partitioned)) {
 
-                nodes_visited_parallel++;
 
                 if (right_child->calculate_lower_bound() < best_parallel) {
                     s->push(right_child);
                 }
             }
 
+            nodes_visited_parallel++;
             // if solution balanced
             if (!(left_child->get_number_left() > total_node_partitioned ||
                   left_child->get_number_right() > total_node_partitioned)) {
-
-                nodes_visited_parallel++;
 
                 if (left_child->calculate_lower_bound() < best_parallel) {
                     s->push(left_child);
@@ -366,23 +375,7 @@ namespace BranchAndBound {
         for (auto i = threads.begin(); i != threads.end(); i++) {
             i->get()->join();
         }
-
-        if (best_node_parallel != nullptr) {
-            shared_ptr<Node::Node> haa = best_node_parallel;
-            while (haa != nullptr) {
-                cout << "Best: " << haa->get_block_num();
-                if (haa->get_direction() == Node::Direction::Left) {
-                    cout << "Left";
-                } else {
-                    cout << "Right";
-                }
-                cout << endl;
-                haa = haa->get_parent();
-            }
-            cout << "Best lower bound: " << best_parallel << endl;
-            cout << "Nodes visited: " << nodes_visited_parallel << endl;
-        }
-
+        print_best_node(best_node_parallel, nodes_visited_parallel);
     }
 
 
@@ -422,47 +415,12 @@ namespace BranchAndBound {
                 continue;
             }
 
-            // if solution balanced
-            if (!(left_child->get_number_left() > total_node_partitioned ||
-                  left_child->get_number_right() > total_node_partitioned)) {
-
-                // increment nodes visited since we'll call calculate_lower_bound here
-                nodes_visited++;
-
-                if (left_child->calculate_lower_bound() < best) {
-                    q.push(left_child);
-                }
-            }
-
-
-            if (!(right_child->get_number_left() > total_node_partitioned ||
-                  right_child->get_number_right() > total_node_partitioned)) {
-
-                // increment nodes visited since we'll call calculate_lower_bound here
-                nodes_visited++;
-
-                if (right_child->calculate_lower_bound() < best) {
-                    q.push(right_child);
-                }
-            }
+            nodes_visited++;
+            evaluate_child(left_child, q, best, total_node_partitioned);
+            nodes_visited++;
+            evaluate_child(right_child, q, best, total_node_partitioned);
         }
-
-
-        if (best_node != nullptr) {
-            shared_ptr<Node::Node> haa = best_node;
-            while (haa != nullptr) {
-                cout << "Best: " << haa->get_block_num();
-                if (haa->get_direction() == Node::Direction::Left) {
-                    cout << "Left";
-                } else {
-                    cout << "Right";
-                }
-                cout << endl;
-                haa = haa->get_parent();
-            }
-            cout << "Best lower bound: " << best << endl;
-            cout << "Nodes visited: " << nodes_visited << endl;
-        }
+        print_best_node(best_node, nodes_visited);
     }
 
 
@@ -470,7 +428,7 @@ namespace BranchAndBound {
         // we already visit the root
         int nodes_visited = 1;
 
-        int total_blocknums = order->size();
+        int total_blocknums = (int)order->size();
         int total_node_partitioned = total_blocknums / 2;
 
         shared_ptr<Node::Node> best_node = initial_solution();
@@ -481,12 +439,12 @@ namespace BranchAndBound {
         shared_ptr<Node::Node> root = Node::create_root(order);
         q.push(root);
         int semaphore = 0;
-#pragma omp parallel
+        #pragma omp parallel
         while (semaphore > 0 || !q.empty()) {
             shared_ptr<Node::Node> evaluate;
             bool processed = false;
 
-#pragma omp critical
+            #pragma omp critical
             {
                 if (!q.empty()) {
                     evaluate = q.front();
@@ -508,7 +466,7 @@ namespace BranchAndBound {
 
                 if (left_child == nullptr && right_child == nullptr) {
                     // reached the leaf, and a solution
-#pragma omp critical
+                    #pragma omp critical
                     {
                         if (evaluate->calculate_lower_bound() <= best) {
                             best = evaluate->calculate_lower_bound();
@@ -519,56 +477,17 @@ namespace BranchAndBound {
                     continue;
                 }
 
-                // if solution balanced
-                if (!(left_child->get_number_left() >
-                      total_node_partitioned ||
-                      left_child->get_number_right() >
-                      total_node_partitioned)) {
-
-#pragma omp critical
-                    nodes_visited++;
-
-                    if (left_child->calculate_lower_bound() < best) {
-#pragma omp critical
-                        q.push(left_child);
-                    }
-                }
-
-
-                if (!(right_child->get_number_left() >
-                      total_node_partitioned ||
-                      right_child->get_number_right() >
-                      total_node_partitioned)) {
-
-#pragma omp critical
-                    nodes_visited++;
-
-                    if (right_child->calculate_lower_bound() < best) {
-#pragma omp critical
-                        q.push(right_child);
-                    }
-                }
-#pragma omp critical
+                #pragma omp critical
                 {
+                    nodes_visited++;
+                    evaluate_child(left_child, q, best, total_node_partitioned);
+                    nodes_visited++;
+                    evaluate_child(right_child, q, best, total_node_partitioned);
+
                     semaphore--;
                 }
             }
         }
-
-        if (best_node != nullptr) {
-            shared_ptr<Node::Node> haa = best_node;
-            while (haa != nullptr) {
-                cout << "Best: " << haa->get_block_num();
-                if (haa->get_direction() == Node::Direction::Left) {
-                    cout << "Left";
-                } else {
-                    cout << "Right";
-                }
-                cout << endl;
-                haa = haa->get_parent();
-            }
-            cout << "Best lower bound: " << best << endl;
-            cout << "Nodes visited: " << nodes_visited << endl;
-        }
+        print_best_node(best_node, nodes_visited);
     }
 }

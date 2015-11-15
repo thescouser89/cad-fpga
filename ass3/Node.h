@@ -11,6 +11,8 @@
 using namespace std;
 
 namespace Node {
+    extern bool GRAPHICS_ON;
+
     enum class Direction {Left, Right};
 
     const float total_x = 2000;

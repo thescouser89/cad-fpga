@@ -14,6 +14,8 @@
 using namespace std;
 
 namespace Node {
+    bool GRAPHICS_ON = false;
+
     Node::Node(int block_num, Direction dir): block_num(block_num), direction(dir) {
     }
 
@@ -129,6 +131,8 @@ namespace Node {
         root->set_level(0);
         root->set_number_left(1);
         root->set_lower_bound(0);
+        root->x_pos = x_root_position;
+        root->y_pos = y_root_position;
 
         return shared_ptr<Node>(root);
     }
@@ -191,23 +195,3 @@ namespace Node {
         return shared_ptr<Node>(child);
     }
 }
-
-//int main(void) {
-//    shared_ptr<vector<int>> order(new vector<int>());
-//    order->push_back(1);
-//    order->push_back(2);
-//    order->push_back(3);
-//    order->push_back(4);
-//    order->push_back(5);
-//
-//    shared_ptr<Node::Node> root = Node::create_root(order);
-//    root->print_info();
-//    shared_ptr<Node::Node> child = Node::get_branch(root, order, Node::Direction::Right);
-//    child->print_info();
-//    child = Node::get_branch(child, order, Node::Direction::Right);
-//    child->print_info();
-//    child = Node::get_branch(child, order, Node::Direction::Left);
-//    child->print_info();
-//    child = Node::get_branch(child, order, Node::Direction::Left);
-//    child->print_info();
-//}

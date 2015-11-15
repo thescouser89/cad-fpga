@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc == 3) {
-        BranchAndBound::GRAPHICS_ON = true;
+        Node::GRAPHICS_ON = true;
     }
 
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
 
-    if (BranchAndBound::GRAPHICS_ON) {
+    if (Node::GRAPHICS_ON) {
 
         std::cout << "About to start graphics.\n";
 
@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
 
 
 //    BranchAndBound::breadth_first_search(order);
-    BranchAndBound::depth_first_search(order);
-//    BranchAndBound::parallel_depth_first_search(order);
+//    BranchAndBound::depth_first_search(order);
+    BranchAndBound::parallel_depth_first_search(order);
 //    BranchAndBound::parallel_breadth_first_search(order);
     return (0);
 }
