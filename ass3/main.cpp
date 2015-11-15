@@ -14,7 +14,7 @@
 // Callbacks for event-driven window handling.
 void draw_screen(void);
 
-const t_bound_box initial_coords = t_bound_box(0, 0, 1000, 1000);
+const t_bound_box initial_coords = t_bound_box(0, 0, Node::total_x, Node::total_y);
 
 
 /**
@@ -52,26 +52,37 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-//    std::cout << "About to start graphics.\n";
-//
-//    init_graphics("Some Example Graphics", WHITE);
-//    set_visible_world(initial_coords);
-//    update_message("Interactive graphics example.");
-//    event_loop(NULL, NULL, NULL, draw_screen);
-//    close_graphics();
-//    std::cout << "Graphics closed down.\n";
+    if (argc == 3) {
+        BranchAndBound::GRAPHICS_ON = true;
+    }
+
+
 
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
 
+    if (BranchAndBound::GRAPHICS_ON) {
+
+        std::cout << "About to start graphics.\n";
+
+        init_graphics("Some Example Graphics", WHITE);
+        set_visible_world(initial_coords);
+        update_message("Interactive graphics example.");
+        event_loop(NULL, NULL, NULL, draw_screen);
+        close_graphics();
+        std::cout << "Graphics closed down.\n";
+        return 0;
+    }
+
+    // else
     shared_ptr<vector<int>> order = get_order_evaluation();
     shared_ptr<Node::Node> n = BranchAndBound::initial_solution();
     cout << "Best initial Solution: " << n->calculate_lower_bound() << endl;
 
 
 //    BranchAndBound::breadth_first_search(order);
-//    BranchAndBound::depth_first_search(order);
-    BranchAndBound::parallel_depth_first_search(order);
+    BranchAndBound::depth_first_search(order);
+//    BranchAndBound::parallel_depth_first_search(order);
 //    BranchAndBound::parallel_breadth_first_search(order);
     return (0);
 }
@@ -86,6 +97,11 @@ void draw_screen(void) {
     setlinestyle(SOLID);
     setlinewidth(1);
     setcolor(BLACK);
+    drawline(0, 0, Node::total_x, 0);
 
-    drawline(200, 120, 200, 200);
+    shared_ptr<vector<int>> order = get_order_evaluation();
+    shared_ptr<Node::Node> n = BranchAndBound::initial_solution();
+    cout << "Best initial Solution: " << n->calculate_lower_bound() << endl;
+
+    BranchAndBound::depth_first_search(order);
 }

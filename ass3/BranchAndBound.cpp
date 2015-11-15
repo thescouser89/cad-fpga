@@ -10,13 +10,46 @@
 #include <cmath>
 #include <mutex>
 #include <thread>
+#include <float.h>
+#include <sstream>
 
 #include "Netlist.h"
 #include "Node.h"
+#include "graphics.h"
 
 using namespace std;
 
 namespace BranchAndBound {
+    bool GRAPHICS_ON = false;
+
+    /**
+     * Helper method to draw stuff in graphics mode
+     */
+    static void draw_node(shared_ptr<Node::Node> node, bool prune, bool unbalanced) {
+        stringstream ss;
+        ss << node->get_block_num();
+        if (node->get_direction() == Node::Direction::Left) {
+            ss << "L";
+        } else {
+            ss << "R";
+        }
+
+        if (prune) {
+            setcolor(DARKGREY);
+        }
+        if (unbalanced) {
+            setcolor(YELLOW);
+        }
+        drawtext(node->x_pos, node->y_pos, ss.str(), FLT_MAX, FLT_MAX);
+        setcolor(BLACK);
+
+        shared_ptr<Node::Node> parent = node->get_parent();
+        if (parent != nullptr) {
+            setcolor(BLUE);
+            drawline(node->x_pos, node->y_pos + 10, parent->x_pos, parent->y_pos - 10);
+            setcolor(BLACK);
+        }
+    }
 
     static shared_ptr<set<int>> get_block_set() {
         shared_ptr<set<int>> block_set(new set<int>());
@@ -126,6 +159,10 @@ namespace BranchAndBound {
         stack<shared_ptr<Node::Node>> s;
 
         shared_ptr<Node::Node> root = Node::create_root(order);
+        root->x_pos = Node::x_root_position;
+        root->y_pos = Node::y_root_position;
+
+        if (GRAPHICS_ON) draw_node(root, false, false);
         s.push(root);
 
         while (!s.empty()) {
@@ -149,25 +186,33 @@ namespace BranchAndBound {
             }
 
             // if solution balanced
+            nodes_visited++;
             if (!(right_child->get_number_left() > total_node_partitioned ||
                   right_child->get_number_right() > total_node_partitioned)) {
 
-                nodes_visited++;
-
                 if (right_child->calculate_lower_bound() < best) {
                     s.push(right_child);
+                    if (GRAPHICS_ON) draw_node(right_child, false, false);
+                } else {
+                    if (GRAPHICS_ON) draw_node(right_child, true, false);
                 }
+            } else {
+                if (GRAPHICS_ON) draw_node(right_child, false, true);
             }
 
             // if solution balanced
+            nodes_visited++;
             if (!(left_child->get_number_left() > total_node_partitioned ||
                   left_child->get_number_right() > total_node_partitioned)) {
 
-                nodes_visited++;
-
                 if (left_child->calculate_lower_bound() < best) {
+                    if (GRAPHICS_ON) draw_node(left_child, false, false);
                     s.push(left_child);
+                } else {
+                    if (GRAPHICS_ON) draw_node(left_child, true, false);
                 }
+            } else {
+                if (GRAPHICS_ON) draw_node(left_child, false, true);
             }
         }
 

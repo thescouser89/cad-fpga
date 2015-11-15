@@ -13,9 +13,19 @@ using namespace std;
 namespace Node {
     enum class Direction {Left, Right};
 
+    const float total_x = 2000;
+    const float total_y = 2000;
+
+    const double y_displacement_from_parent = 50;
+    const double x_root_position = total_x / 2;
+    const double y_root_position = total_y - 30;
+
 
     class Node {
     public:
+        double x_pos = 0;
+        double y_pos = 0;
+
         set<int> nets_intersected;
 
         Node(int block_num, Direction dir);

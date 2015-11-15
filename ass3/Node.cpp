@@ -154,15 +154,38 @@ namespace Node {
             child->set_right(parent);
         }
 
+
+
+        shared_ptr<Node> grandparent = parent->get_parent();
         if (dir == Direction::Left) {
             child->set_number_left(parent->get_number_left() + 1);
             child->set_number_right(parent->get_number_right());
+
+            if (grandparent == nullptr) {
+                child->x_pos = parent->x_pos / 2;
+            } else {
+                double midpoint = parent->x_pos - grandparent->x_pos;
+                if (midpoint < 0) midpoint *= -1;
+                double half_midpoint  = midpoint / 2;
+                child->x_pos = parent->x_pos - half_midpoint;
+            }
+
+            child->y_pos = parent->y_pos - y_displacement_from_parent;
         } else {
             child->set_number_left(parent->get_number_left());
             child->set_number_right(parent->get_number_right() + 1);
+
+            if (grandparent == nullptr) {
+                child->x_pos = parent->x_pos + parent->x_pos / 2;
+            } else {
+                double midpoint = parent->x_pos - grandparent->x_pos;
+                if (midpoint < 0) midpoint *= -1;
+                double half_midpoint  = midpoint / 2;
+                child->x_pos = parent->x_pos + half_midpoint;
+            }
+
+            child->y_pos = parent->y_pos - y_displacement_from_parent;
         }
-
-
 
         child->set_level(level_child);
         return shared_ptr<Node>(child);
