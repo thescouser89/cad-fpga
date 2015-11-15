@@ -21,6 +21,11 @@ const t_bound_box initial_coords = t_bound_box(0, 0, 1000, 1000);
  * Ordered from block that has highest number of edges/nets to block that have
  * least number of edges/nets
  */
+
+bool cmp_pair(const pair<int, int>& a, const pair<int, int>& b) {
+    return a.second < b.second;
+}
+
 shared_ptr<vector<int>> get_order_evaluation() {
     vector<pair<int, int>> pairs;
 
@@ -28,9 +33,7 @@ shared_ptr<vector<int>> get_order_evaluation() {
         pairs.push_back(*itr);
 
     // sort based on edges
-    sort(pairs.begin(), pairs.end(), [=](pair<int, int>& a, pair<int, int>& b) {
-            return a.second < b.second;
-    });
+    sort(pairs.begin(), pairs.end(), cmp_pair);
 
     shared_ptr<vector<int>> order(new vector<int>());
 

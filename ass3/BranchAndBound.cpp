@@ -28,7 +28,7 @@ namespace BranchAndBound {
         return block_set;
     }
 
-    bool cmp_node(pair<int, shared_ptr<set<int>>>& a, pair<int, shared_ptr<set<int>>>& b) {
+    bool cmp_node(const pair<int, shared_ptr<set<int>>>& a, const pair<int, shared_ptr<set<int>>>& b) {
         return a.first > b.first;
     }
 
