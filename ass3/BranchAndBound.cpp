@@ -28,6 +28,10 @@ namespace BranchAndBound {
         return block_set;
     }
 
+    bool cmp_node(pair<unsigned long, shared_ptr<set<int>>>& a, pair<unsigned long, shared_ptr<set<int>>>& b) {
+        return a.first > b.first;
+    }
+
     static shared_ptr<vector<int>> descending_number_blocks() {
         vector<pair<unsigned long, shared_ptr<set<int>>>> pairs;
 
@@ -37,9 +41,7 @@ namespace BranchAndBound {
             pairs.push_back(pair<unsigned long, shared_ptr<set<int>>>(blocks->size(), blocks));
         }
 
-        sort(pairs.begin(), pairs.end(), [=](pair<unsigned long, shared_ptr<set<int>>>& a, pair<unsigned long, shared_ptr<set<int>>>& b) {
-            return a.first > b.first;
-        });
+        sort(pairs.begin(), pairs.end(), cmp_node);
 
         shared_ptr<vector<int>> to_return(new vector<int>());
         set<int> blocks_in_vector;
