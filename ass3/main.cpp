@@ -4,6 +4,8 @@
 #include <thread>
 #include <cstdlib>
 #include <vector>
+#include <map>
+#include <bits/stl_algo.h>
 #include "graphics.h"
 #include "Netlist.h"
 #include "Node.h"
@@ -13,6 +15,33 @@
 void draw_screen(void);
 
 const t_bound_box initial_coords = t_bound_box(0, 0, 1000, 1000);
+
+
+/**
+ * Ordered from block that has highest number of edges/nets to block that have
+ * least number of edges/nets
+ */
+shared_ptr<vector<int>> get_order_evaluation() {
+    vector<pair<int, int>> pairs;
+
+    for (auto itr = Netlist::BLOCK_EDGES.begin(); itr != Netlist::BLOCK_EDGES.end(); ++itr)
+        pairs.push_back(*itr);
+
+    // sort based on edges
+    sort(pairs.begin(), pairs.end(), [=](pair<int, int>& a, pair<int, int>& b) {
+            return a.second < b.second;
+    });
+
+    shared_ptr<vector<int>> order(new vector<int>());
+
+    // order is created with block with highest number of edges to least number
+    for (auto i = pairs.begin(); i != pairs.end(); i++) {
+        order->insert(order->begin(), i->first);
+    }
+
+    return order;
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
@@ -32,42 +61,15 @@ int main(int argc, char* argv[]) {
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
 
-    shared_ptr<vector<int>> order(new vector<int>());
-    order->push_back(1);
-    order->push_back(3);
-    order->push_back(6);
-    order->push_back(11);
-    order->push_back(10);
-    order->push_back(14);
-    order->push_back(15);
-    order->push_back(13);
-    order->push_back(2);
-    order->push_back(4);
-    order->push_back(5);
-    order->push_back(7);
-    order->push_back(8);
-    order->push_back(9);
-    order->push_back(12);
-    order->push_back(16);
-    order->push_back(17);
-    order->push_back(18);
-    order->push_back(19);
-    order->push_back(20);
-    order->push_back(21);
-    order->push_back(22);
-    order->push_back(23);
-    order->push_back(24);
-    order->push_back(25);
-    order->push_back(26);
-//    order->push_back(27);
-//    order->push_back(28);
-//    order->push_back(29);
-//    order->push_back(30);
+    shared_ptr<vector<int>> order = get_order_evaluation();
+    shared_ptr<Node::Node> n = BranchAndBound::initial_solution();
+    cout << "Best initial Solution: " << n->calculate_lower_bound() << endl;
 
 
 //    BranchAndBound::breadth_first_search(order);
 //    BranchAndBound::depth_first_search(order);
-    BranchAndBound::parallel_breadth_first_search(order);
+    BranchAndBound::parallel_depth_first_search(order);
+//    BranchAndBound::parallel_breadth_first_search(order);
     return (0);
 }
 

@@ -12,7 +12,12 @@ using namespace std;
 namespace Netlist {
 
     map<int, shared_ptr<set<int>>> BLOCK_NETS;
+    map<int, shared_ptr<set<int>>> NET_BLOCKS;
     map<int, int> BLOCK_EDGES;
+
+    int number_of_blocks() {
+        return BLOCK_EDGES.size();
+    }
 
     void parse_file(ifstream &in) {
         populate_block_nets(in);
@@ -56,14 +61,21 @@ namespace Netlist {
     }
 
     void insert_block_to_netlist(int val, int block) {
+        BLOCK_EDGES[block]++;
+        shared_ptr<set<int>> blocks = NET_BLOCKS[val];
         shared_ptr<set<int>> nets = BLOCK_NETS[block];
-
         // create set if it doesn't exist
         if (nets == nullptr) {
             shared_ptr<set<int>> new_nets(new set<int>());
             BLOCK_NETS[block] = new_nets;
             nets = new_nets;
         }
+        if (blocks == nullptr) {
+            shared_ptr<set<int>> new_blocks(new set<int>());
+            NET_BLOCKS[val] = new_blocks;
+            blocks = new_blocks;
+        }
         nets->insert(val);
+        blocks->insert(block);
     }
 }

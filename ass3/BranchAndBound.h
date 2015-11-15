@@ -10,9 +10,10 @@
 using namespace std;
 
 namespace BranchAndBound {
+    shared_ptr<Node::Node> initial_solution();
     void depth_first_search(shared_ptr<vector<int>> order);
+    void parallel_depth_first_search(shared_ptr<vector<int>> order);
     void breadth_first_search(shared_ptr<vector<int>> order);
-    void lowest_bound_first(shared_ptr<vector<int>> order);
 
     void parallel_breadth_first_search(shared_ptr<vector<int>> order);
 }
