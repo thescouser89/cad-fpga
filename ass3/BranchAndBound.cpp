@@ -28,17 +28,17 @@ namespace BranchAndBound {
         return block_set;
     }
 
-    bool cmp_node(pair<unsigned long, shared_ptr<set<int>>>& a, pair<unsigned long, shared_ptr<set<int>>>& b) {
+    bool cmp_node(pair<int, shared_ptr<set<int>>>& a, pair<int, shared_ptr<set<int>>>& b) {
         return a.first > b.first;
     }
 
     static shared_ptr<vector<int>> descending_number_blocks() {
-        vector<pair<unsigned long, shared_ptr<set<int>>>> pairs;
+        vector<pair<int, shared_ptr<set<int>>>> pairs;
 
         // generate a map of block_size -> block set for each netlist
         for (auto i = Netlist::NET_BLOCKS.begin(); i != Netlist::NET_BLOCKS.end(); i++) {
             shared_ptr<set<int>> blocks = i->second;
-            pairs.push_back(pair<unsigned long, shared_ptr<set<int>>>(blocks->size(), blocks));
+            pairs.push_back(pair<int, shared_ptr<set<int>>>((int)blocks->size(), blocks));
         }
 
         sort(pairs.begin(), pairs.end(), cmp_node);
