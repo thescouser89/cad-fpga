@@ -52,11 +52,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    bool parallel = false;
+
     if (argc == 3) {
-        Node::GRAPHICS_ON = true;
+        if (string(argv[2]) == "graphics") {
+            Node::GRAPHICS_ON = true;
+        } else if (string(argv[2]) == "parallel") {
+            parallel = true;
+        }
     }
-
-
 
     ifstream netlist_file(argv[1]);
     Netlist::parse_file(netlist_file);
@@ -80,9 +84,13 @@ int main(int argc, char* argv[]) {
     cout << "Best initial Solution: " << n->calculate_lower_bound() << endl;
 
 
+    if (parallel) {
+        cout << "Starting parallel depth-first-search! Buckle up!" << endl;
+        BranchAndBound::parallel_depth_first_search(order);
+    } else {
+        BranchAndBound::depth_first_search(order);
+    }
 //    BranchAndBound::breadth_first_search(order);
-//    BranchAndBound::depth_first_search(order);
-    BranchAndBound::parallel_depth_first_search(order);
 //    BranchAndBound::parallel_breadth_first_search(order);
     return (0);
 }
