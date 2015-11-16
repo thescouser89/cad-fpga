@@ -27,7 +27,7 @@ HDR = graphics.h easygl_constants.h Node.h BranchAndBound.h Netlist.h
 SRC = graphics.cpp Netlist.cpp Node.cpp BranchAndBound.cpp main.cpp
 EXE = main
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
-FLAGS = -fopenmp -g -Wall -Wextra -pedantic -D$(PLATFORM) -std=c++11
+FLAGS = -O2 -fopenmp -g -Wall -Wextra -pedantic -D$(PLATFORM) -std=c++11
 
 # Need to tell the linker to link to the libraries.
 # WIN32 links to all the win32 API libraries every time (no need for flags)
