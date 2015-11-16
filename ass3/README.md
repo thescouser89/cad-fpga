@@ -27,7 +27,7 @@ To measure the runtime, the command `time` is used.
 
 ```
 # e.g
-time ./main cct3
+/usr/bin/time ./main cct3
 ```
 
 ## Flags passed to makefile
