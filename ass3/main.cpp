@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
         init_graphics("Some Example Graphics", WHITE);
         set_visible_world(initial_coords);
-        update_message("Interactive graphics example.");
+        update_message("Grey nodes are pruned, yellow nodes are out of balance");
         event_loop(NULL, NULL, NULL, draw_screen);
         close_graphics();
         std::cout << "Graphics closed down.\n";
